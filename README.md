@@ -1,2 +1,0 @@
-# tribeswrs
-long live tribesyan
