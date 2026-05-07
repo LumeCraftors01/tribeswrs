@@ -1,0 +1,2438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TribeForge — Rise of Clans</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #f5c842;
+  --gold2: #e8a020;
+  --dark: #0d0a06;
+  --panel: #1a1208;
+  --panel2: #241a0c;
+  --panel3: #2e2010;
+  --green: #4caf50;
+  --red: #e53935;
+  --blue: #42a5f5;
+  --wood: #8d6e63;
+  --stone: #90a4ae;
+  --border: #4a3510;
+  --text: #f0e0b0;
+  --text2: #b89860;
+  --radius: 10px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.7);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;background:#0d0a06;font-family:'Crimson Pro',serif;color:var(--text);}
+
+/* ===== LOADING SCREEN ===== */
+#loading-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0a0700 0%,#1a1000 50%,#0a0700 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity 0.6s;}
+#loading-screen.fade-out{opacity:0;pointer-events:none;}
+.load-logo{font-family:'Cinzel Decorative',cursive;font-size:clamp(1.8rem,5vw,3.5rem);color:var(--gold);text-shadow:0 0 40px #f5c84280,0 2px 4px #000;letter-spacing:4px;animation:pulse-logo 2s infinite;}
+.load-sub{font-family:'Cinzel',serif;color:var(--text2);font-size:1rem;letter-spacing:6px;margin:8px 0 40px;}
+.load-bar-wrap{width:280px;height:8px;background:#1a1208;border:1px solid #4a3510;border-radius:4px;overflow:hidden;}
+.load-bar{height:100%;width:0%;background:linear-gradient(90deg,#8d4a00,var(--gold),#8d4a00);border-radius:4px;transition:width 0.1s;animation:shimmer 1.5s infinite;}
+.load-tip{margin-top:20px;color:var(--text2);font-size:0.9rem;font-style:italic;max-width:300px;text-align:center;}
+@keyframes pulse-logo{0%,100%{text-shadow:0 0 40px #f5c84280,0 2px 4px #000;}50%{text-shadow:0 0 70px #f5c842cc,0 2px 4px #000;}}
+@keyframes shimmer{0%{background-position:-280px;}100%{background-position:280px;}}
+
+/* ===== AUTH SCREEN ===== */
+#auth-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0a0700 0%,#1a1000 50%,#0a0700 100%);display:flex;align-items:center;justify-content:center;z-index:9000;}
+#auth-screen.hidden{display:none;}
+.auth-bg{position:absolute;inset:0;overflow:hidden;}
+.auth-bg-particle{position:absolute;border-radius:50%;animation:float-part linear infinite;opacity:0.08;}
+.auth-box{position:relative;background:linear-gradient(145deg,#1a1208,#241a0c);border:1px solid var(--border);border-radius:16px;padding:36px 32px;width:min(420px,95vw);box-shadow:0 20px 80px rgba(0,0,0,0.8),inset 0 1px 0 #4a351040;}
+.auth-title{font-family:'Cinzel Decorative',cursive;color:var(--gold);font-size:1.6rem;text-align:center;margin-bottom:4px;text-shadow:0 0 20px #f5c84260;}
+.auth-sub{text-align:center;color:var(--text2);font-size:0.9rem;margin-bottom:28px;font-style:italic;}
+.auth-tabs{display:flex;gap:0;margin-bottom:24px;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.auth-tab{flex:1;padding:10px;background:transparent;border:none;color:var(--text2);cursor:pointer;font-family:'Cinzel',serif;font-size:0.85rem;letter-spacing:1px;transition:all 0.2s;}
+.auth-tab.active{background:var(--gold2);color:#000;font-weight:700;}
+.auth-field{margin-bottom:16px;}
+.auth-field label{display:block;color:var(--text2);font-size:0.85rem;margin-bottom:6px;font-family:'Cinzel',serif;letter-spacing:1px;}
+.auth-field-row{position:relative;}
+.auth-field input{width:100%;background:#0d0a06;border:1px solid var(--border);border-radius:8px;padding:12px 44px 12px 14px;color:var(--text);font-size:1rem;font-family:'Crimson Pro',serif;outline:none;transition:border-color 0.2s;}
+.auth-field input:focus{border-color:var(--gold2);}
+.auth-field input.error{border-color:var(--red);}
+.eye-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.1rem;padding:4px;}
+.auth-err{color:var(--red);font-size:0.82rem;margin-top:4px;}
+.auth-btn{width:100%;padding:14px;background:linear-gradient(135deg,#8d4a00,var(--gold2),#8d4a00);border:none;border-radius:8px;color:#000;font-family:'Cinzel',serif;font-weight:700;font-size:1rem;letter-spacing:2px;cursor:pointer;margin-top:8px;transition:all 0.2s;box-shadow:0 4px 16px rgba(245,200,66,0.3);}
+.auth-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(245,200,66,0.5);}
+.saved-accounts{margin-top:20px;}
+.saved-accounts-title{color:var(--text2);font-size:0.8rem;font-family:'Cinzel',serif;letter-spacing:1px;margin-bottom:8px;}
+.saved-account-item{display:flex;align-items:center;gap:10px;padding:10px;background:#0d0a06;border:1px solid var(--border);border-radius:8px;cursor:pointer;margin-bottom:6px;transition:border-color 0.2s;}
+.saved-account-item:hover{border-color:var(--gold2);}
+.saved-account-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#8d4a00,var(--gold2));display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-weight:700;color:#000;font-size:0.9rem;}
+.saved-account-info{flex:1;}
+.saved-account-name{color:var(--text);font-size:0.9rem;}
+.saved-account-email{color:var(--text2);font-size:0.75rem;}
+@keyframes float-part{0%{transform:translateY(100vh) rotate(0);}100%{transform:translateY(-100px) rotate(360deg);}}
+
+/* ===== GAME SCREEN ===== */
+#game-screen{position:fixed;inset:0;display:flex;flex-direction:column;z-index:100;}
+#game-screen.hidden{display:none;}
+
+/* ===== TOP BAR ===== */
+#top-bar{background:linear-gradient(180deg,#1a1208 0%,#241a0c 100%);border-bottom:2px solid var(--border);display:flex;align-items:center;gap:6px;padding:6px 10px;flex-shrink:0;z-index:200;flex-wrap:wrap;}
+.res-chip{display:flex;align-items:center;gap:5px;background:#0d0a06;border:1px solid var(--border);border-radius:20px;padding:5px 10px;font-size:0.85rem;min-width:80px;}
+.res-chip .icon{font-size:1rem;}
+.res-chip .val{color:var(--gold);font-family:'Cinzel',serif;font-weight:600;}
+.top-sep{flex:1;}
+.top-user{display:flex;align-items:center;gap:6px;font-size:0.8rem;color:var(--text2);}
+.top-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#8d4a00,var(--gold2));display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-weight:700;color:#000;font-size:0.8rem;}
+.top-btn{background:#0d0a06;border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text2);cursor:pointer;font-size:0.9rem;transition:all 0.2s;}
+.top-btn:hover{border-color:var(--gold2);color:var(--gold);}
+.top-might{color:var(--gold);font-family:'Cinzel',serif;font-size:0.75rem;}
+
+/* ===== MIDDLE AREA ===== */
+#middle{flex:1;display:flex;overflow:hidden;position:relative;}
+
+/* ===== MAP ===== */
+#map-area{flex:1;position:relative;overflow:hidden;cursor:grab;}
+#map-area.dragging{cursor:grabbing;}
+#map-canvas-wrap{position:absolute;transform-origin:0 0;}
+.map-grid{position:relative;}
+.grid-cell{position:absolute;border:1px solid rgba(255,255,255,0.03);transition:background 0.15s;}
+.grid-cell.hover{background:rgba(245,200,66,0.12);}
+.grid-cell.blocked{background:rgba(229,57,53,0.12);}
+.building-el{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;cursor:pointer;transition:transform 0.1s;user-select:none;}
+.building-el:hover{transform:scale(1.05);}
+.building-el.selected{filter:drop-shadow(0 0 8px var(--gold));}
+.building-el .b-icon{font-size:1.8rem;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.8));line-height:1;}
+.building-el .b-name{font-size:0.55rem;font-family:'Cinzel',serif;color:var(--text2);background:rgba(0,0,0,0.6);border-radius:3px;padding:1px 4px;white-space:nowrap;}
+.building-el .b-prog{position:absolute;top:2px;left:0;right:0;display:flex;justify-content:center;}
+.prog-bar{height:4px;background:#222;border:1px solid #333;border-radius:2px;overflow:hidden;width:80%;}
+.prog-fill{height:100%;background:linear-gradient(90deg,#4caf50,#8bc34a);border-radius:2px;transition:width 0.5s;}
+.b-upgrade-badge{position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:var(--gold2);border-radius:50%;font-size:0.55rem;display:flex;align-items:center;justify-content:center;color:#000;font-weight:700;}
+.tree-el,.rock-el{position:absolute;font-size:1.6rem;cursor:pointer;user-select:none;animation:sway 3s ease-in-out infinite;}
+@keyframes sway{0%,100%{transform:rotate(-3deg);}50%{transform:rotate(3deg);}}
+
+/* day/night */
+#sky-overlay{position:absolute;inset:0;pointer-events:none;transition:background 10s;z-index:1;}
+.weather-overlay{position:absolute;inset:0;pointer-events:none;z-index:2;overflow:hidden;}
+.rain-drop{position:absolute;width:2px;border-radius:1px;background:linear-gradient(180deg,transparent,rgba(100,149,237,0.6));animation:rain-fall linear infinite;}
+@keyframes rain-fall{0%{transform:translateY(-20px);}100%{transform:translateY(110vh);}}
+
+/* ===== BOTTOM PANEL ===== */
+#bottom-bar{background:linear-gradient(0deg,#0d0a06 0%,#1a1208 100%);border-top:2px solid var(--border);padding:8px 10px;display:flex;gap:8px;align-items:center;flex-shrink:0;z-index:200;overflow-x:auto;}
+.bb-btn{background:linear-gradient(145deg,#1a1208,#241a0c);border:1px solid var(--border);border-radius:10px;padding:8px 14px;color:var(--text);cursor:pointer;font-family:'Cinzel',serif;font-size:0.75rem;letter-spacing:1px;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:60px;transition:all 0.2s;white-space:nowrap;}
+.bb-btn .bb-icon{font-size:1.4rem;}
+.bb-btn:hover,.bb-btn.active{border-color:var(--gold2);color:var(--gold);background:linear-gradient(145deg,#241a0c,#2e2010);}
+.builder-slots{display:flex;gap:4px;align-items:center;}
+.builder-slot{width:28px;height:28px;border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;background:#0d0a06;}
+.builder-slot.busy{border-color:var(--gold2);background:#1a1208;animation:pulse-slot 1.5s infinite;}
+@keyframes pulse-slot{0%,100%{box-shadow:0 0 0 0 rgba(245,200,66,0.4);}50%{box-shadow:0 0 0 4px rgba(245,200,66,0.0);}}
+
+/* ===== SIDE PANELS ===== */
+.side-panel{position:absolute;top:0;bottom:0;right:0;width:min(320px,90vw);background:linear-gradient(145deg,#1a1208,#0d0a06);border-left:2px solid var(--border);z-index:300;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.3s ease;}
+.side-panel.open{transform:translateX(0);}
+.side-panel-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);background:#241a0c;}
+.side-panel-title{font-family:'Cinzel',serif;color:var(--gold);font-size:1rem;letter-spacing:2px;}
+.close-btn{background:none;border:none;color:var(--text2);font-size:1.3rem;cursor:pointer;padding:4px;}
+.side-panel-body{flex:1;overflow-y:auto;padding:16px;}
+.side-panel-body::-webkit-scrollbar{width:4px;}
+.side-panel-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* Building shop */
+.build-category{margin-bottom:20px;}
+.build-cat-title{font-family:'Cinzel',serif;font-size:0.8rem;color:var(--gold2);letter-spacing:2px;margin-bottom:10px;border-bottom:1px solid var(--border);padding-bottom:4px;}
+.build-item{display:flex;align-items:center;gap:10px;padding:10px;background:#0d0a06;border:1px solid var(--border);border-radius:8px;cursor:pointer;margin-bottom:6px;transition:all 0.2s;}
+.build-item:hover{border-color:var(--gold2);background:#1a1208;}
+.build-item .bi-icon{font-size:2rem;width:40px;text-align:center;}
+.build-item-info{flex:1;}
+.bi-name{color:var(--text);font-family:'Cinzel',serif;font-size:0.85rem;}
+.bi-cost{color:var(--gold2);font-size:0.8rem;margin-top:2px;}
+.bi-req{color:var(--text2);font-size:0.75rem;font-style:italic;}
+.bi-locked{opacity:0.4;cursor:not-allowed;}
+
+/* Building info panel */
+#building-info-panel{position:absolute;bottom:80px;left:50%;transform:translateX(-50%);background:linear-gradient(145deg,#1a1208,#0d0a06);border:1px solid var(--border);border-radius:12px;padding:16px;min-width:220px;max-width:300px;z-index:250;display:none;box-shadow:var(--shadow);}
+#building-info-panel.show{display:block;animation:pop-in 0.2s ease;}
+@keyframes pop-in{from{transform:translateX(-50%) scale(0.9);opacity:0;}to{transform:translateX(-50%) scale(1);opacity:1;}}
+.bip-title{font-family:'Cinzel',serif;color:var(--gold);font-size:1rem;margin-bottom:4px;}
+.bip-level{color:var(--text2);font-size:0.8rem;margin-bottom:10px;}
+.bip-stats{font-size:0.85rem;color:var(--text);margin-bottom:10px;line-height:1.8;}
+.bip-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.bip-btn{flex:1;padding:8px;border:none;border-radius:6px;cursor:pointer;font-family:'Cinzel',serif;font-size:0.75rem;letter-spacing:1px;min-width:70px;}
+.bip-btn.upgrade{background:linear-gradient(135deg,#8d4a00,var(--gold2));color:#000;}
+.bip-btn.destroy{background:#e53935;color:#fff;}
+.bip-btn.collect{background:#4caf50;color:#fff;}
+.bip-btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* ===== MODALS ===== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.modal-overlay.hidden{display:none;}
+.modal-box{background:linear-gradient(145deg,#1a1208,#0d0a06);border:1px solid var(--border);border-radius:16px;padding:24px;width:min(480px,95vw);max-height:85vh;overflow-y:auto;animation:pop-in 0.25s ease;}
+.modal-title{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;letter-spacing:2px;margin-bottom:16px;text-align:center;}
+
+/* Chat */
+#chat-panel{position:absolute;bottom:80px;left:10px;width:min(320px,calc(100vw - 20px));background:linear-gradient(145deg,#1a1208,#0d0a06);border:1px solid var(--border);border-radius:12px;z-index:250;display:flex;flex-direction:column;max-height:400px;transform:scaleY(0);transform-origin:bottom;transition:transform 0.3s ease;box-shadow:var(--shadow);}
+#chat-panel.open{transform:scaleY(1);}
+.chat-header{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-family:'Cinzel',serif;color:var(--gold);font-size:0.85rem;}
+.chat-msgs{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px;max-height:260px;}
+.chat-msg{background:#0d0a06;border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:0.82rem;}
+.chat-msg .cm-name{color:var(--gold2);font-family:'Cinzel',serif;font-size:0.75rem;}
+.chat-msg .cm-time{color:#555;font-size:0.7rem;float:right;}
+.chat-msg .cm-text{color:var(--text);margin-top:2px;word-break:break-word;}
+.chat-msg.system{background:#1a1208;border-color:var(--gold2);}
+.chat-input-row{display:flex;gap:6px;padding:8px;}
+.chat-input-row input{flex:1;background:#0d0a06;border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text);font-size:0.85rem;outline:none;font-family:'Crimson Pro',serif;}
+.chat-input-row button{background:var(--gold2);border:none;border-radius:6px;padding:8px 12px;color:#000;cursor:pointer;font-size:1rem;}
+
+/* Quest panel */
+.quest-item{background:#0d0a06;border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;}
+.qi-title{color:var(--gold);font-family:'Cinzel',serif;font-size:0.85rem;}
+.qi-desc{color:var(--text2);font-size:0.8rem;margin:4px 0;}
+.qi-prog{height:6px;background:#1a1208;border-radius:3px;overflow:hidden;margin:6px 0;}
+.qi-fill{height:100%;background:linear-gradient(90deg,#4caf50,#8bc34a);border-radius:3px;transition:width 0.5s;}
+.qi-reward{color:var(--gold2);font-size:0.78rem;}
+.qi-claim{background:linear-gradient(135deg,#8d4a00,var(--gold2));border:none;border-radius:5px;padding:5px 10px;color:#000;font-family:'Cinzel',serif;font-size:0.7rem;cursor:pointer;margin-top:6px;}
+
+/* Troops */
+.troop-item{display:flex;align-items:center;gap:10px;padding:10px;background:#0d0a06;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;}
+.troop-icon{font-size:2rem;width:40px;text-align:center;}
+.troop-info{flex:1;}
+.troop-name{font-family:'Cinzel',serif;font-size:0.85rem;color:var(--text);}
+.troop-stats{font-size:0.78rem;color:var(--text2);}
+.troop-count{color:var(--gold);font-family:'Cinzel',serif;}
+.train-btn{background:linear-gradient(135deg,#1a4a00,#4caf50);border:none;border-radius:6px;padding:6px 10px;color:#fff;font-family:'Cinzel',serif;font-size:0.7rem;cursor:pointer;}
+.train-btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* Leaderboard */
+.lb-row{display:flex;align-items:center;gap:10px;padding:8px;background:#0d0a06;border-radius:6px;margin-bottom:4px;}
+.lb-rank{font-family:'Cinzel',serif;color:var(--gold2);width:24px;text-align:center;font-size:0.8rem;}
+.lb-name{flex:1;font-size:0.85rem;}
+.lb-val{color:var(--gold);font-family:'Cinzel',serif;font-size:0.85rem;}
+
+/* Notifications */
+#notif-stack{position:fixed;top:10px;right:10px;z-index:9000;display:flex;flex-direction:column;gap:6px;pointer-events:none;}
+.notif{background:linear-gradient(135deg,#1a1208,#241a0c);border:1px solid var(--gold2);border-radius:8px;padding:10px 14px;color:var(--text);font-size:0.85rem;animation:slide-in-right 0.3s ease;box-shadow:var(--shadow);max-width:260px;}
+.notif.error{border-color:var(--red);}
+.notif.success{border-color:var(--green);}
+.notif.fade-out-notif{animation:fade-out-right 0.3s ease forwards;}
+@keyframes slide-in-right{from{transform:translateX(120%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+@keyframes fade-out-right{from{transform:translateX(0);opacity:1;}to{transform:translateX(120%);opacity:0;}}
+
+/* Floating text */
+.float-text{position:fixed;pointer-events:none;font-family:'Cinzel',serif;font-weight:700;font-size:1rem;animation:float-up 1.5s ease forwards;z-index:9999;}
+.float-text.gold{color:var(--gold);}
+.float-text.red{color:var(--red);}
+.float-text.green{color:var(--green);}
+@keyframes float-up{0%{transform:translateY(0);opacity:1;}100%{transform:translateY(-60px);opacity:0;}}
+
+/* Battle modal */
+.battle-screen{background:radial-gradient(circle at 50% 50%,#1a0808,#0a0000);border-radius:12px;padding:24px;}
+.battle-hp-bars{display:flex;justify-content:space-between;margin-bottom:20px;}
+.battle-side{text-align:center;flex:1;}
+.battle-side-name{font-family:'Cinzel',serif;color:var(--text2);font-size:0.85rem;margin-bottom:4px;}
+.battle-side-icon{font-size:3rem;margin-bottom:8px;}
+.battle-hp-bar{height:16px;background:#1a0808;border:1px solid #4a1010;border-radius:8px;overflow:hidden;width:100%;}
+.bhp-fill{height:100%;border-radius:8px;transition:width 0.5s ease;}
+.bhp-fill.player{background:linear-gradient(90deg,#4caf50,#8bc34a);}
+.bhp-fill.enemy{background:linear-gradient(90deg,#e53935,#ff7043);}
+.battle-vs{font-family:'Cinzel Decorative',cursive;color:var(--gold);font-size:1.5rem;align-self:center;flex:0 0 40px;text-align:center;}
+.battle-log{background:#0a0000;border:1px solid #4a1010;border-radius:6px;height:120px;overflow-y:auto;padding:8px;font-size:0.8rem;color:var(--text2);margin-bottom:16px;}
+.bl-entry{margin-bottom:2px;}
+.battle-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.battle-btn{flex:1;padding:10px;border:none;border-radius:8px;cursor:pointer;font-family:'Cinzel',serif;font-size:0.8rem;letter-spacing:1px;min-width:80px;}
+.battle-btn.attack{background:linear-gradient(135deg,#8d0000,var(--red));color:#fff;}
+.battle-btn.retreat{background:#333;color:var(--text2);}
+.battle-btn.use-item{background:linear-gradient(135deg,#1a4a00,#4caf50);color:#fff;}
+
+/* Market */
+.market-item{display:flex;align-items:center;gap:10px;padding:10px;background:#0d0a06;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;}
+.market-from,.market-to{text-align:center;flex:1;}
+.market-arrow{color:var(--gold2);}
+.market-action{background:var(--gold2);border:none;border-radius:5px;padding:6px 10px;color:#000;font-family:'Cinzel',serif;font-size:0.7rem;cursor:pointer;}
+
+/* Daily reward */
+.daily-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:16px;}
+.day-box{background:#0d0a06;border:1px solid var(--border);border-radius:6px;padding:6px;text-align:center;}
+.day-box.claimed{border-color:var(--green);background:#0a1a0a;}
+.day-box.today{border-color:var(--gold);animation:pulse-gold 1.5s infinite;}
+.day-num{font-family:'Cinzel',serif;font-size:0.7rem;color:var(--text2);}
+.day-icon{font-size:1.5rem;margin:4px 0;}
+.day-val{color:var(--gold2);font-size:0.7rem;}
+@keyframes pulse-gold{0%,100%{box-shadow:0 0 0 0 rgba(245,200,66,0.4);}50%{box-shadow:0 0 0 4px rgba(245,200,66,0);}}
+
+/* Mini map */
+#mini-map{position:absolute;bottom:10px;right:10px;width:120px;height:90px;background:#0d0a06;border:1px solid var(--border);border-radius:6px;overflow:hidden;z-index:200;cursor:pointer;}
+#mini-map-canvas{width:100%;height:100%;}
+
+/* Settings modal */
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);}
+.setting-label{color:var(--text);font-size:0.9rem;}
+.toggle{position:relative;width:44px;height:24px;}
+.toggle input{display:none;}
+.toggle-slider{position:absolute;inset:0;background:#333;border-radius:12px;cursor:pointer;transition:background 0.3s;}
+.toggle input:checked + .toggle-slider{background:var(--gold2);}
+.toggle-slider::before{content:'';position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform 0.3s;}
+.toggle input:checked + .toggle-slider::before{transform:translateX(20px);}
+input[type=range]{-webkit-appearance:none;appearance:none;height:4px;background:#333;border-radius:2px;outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--gold2);cursor:pointer;}
+
+/* Tech tree */
+.tech-item{display:flex;align-items:center;gap:10px;padding:10px;background:#0d0a06;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;}
+.tech-icon{font-size:1.8rem;width:36px;text-align:center;}
+.tech-info{flex:1;}
+.tech-name{font-family:'Cinzel',serif;font-size:0.85rem;color:var(--text);}
+.tech-desc{font-size:0.75rem;color:var(--text2);margin-top:2px;}
+.tech-btn{background:linear-gradient(135deg,#0a1a4a,#1565c0);border:none;border-radius:6px;padding:6px 10px;color:#fff;font-family:'Cinzel',serif;font-size:0.7rem;cursor:pointer;}
+.tech-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.tech-item.researched{border-color:var(--gold2);}
+
+/* Alliance */
+.alliance-member{display:flex;align-items:center;gap:8px;padding:8px;background:#0d0a06;border-radius:6px;margin-bottom:4px;}
+.alliance-member .am-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#1a3a6a,#42a5f5);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-family:'Cinzel',serif;color:#fff;}
+.online-dot{width:8px;height:8px;border-radius:50%;background:var(--green);margin-left:auto;}
+
+/* Tutorial overlay */
+#tutorial-overlay{position:fixed;inset:0;z-index:8000;pointer-events:none;}
+.tutorial-highlight{position:absolute;border:2px solid var(--gold);border-radius:8px;animation:pulse-gold 1.5s infinite;pointer-events:none;}
+.tutorial-bubble{position:absolute;background:linear-gradient(145deg,#241a0c,#1a1208);border:1px solid var(--gold);border-radius:10px;padding:12px 16px;max-width:240px;z-index:8001;pointer-events:all;box-shadow:var(--shadow);}
+.tutorial-bubble::after{content:'';position:absolute;border:8px solid transparent;}
+.tb-text{color:var(--text);font-size:0.85rem;line-height:1.5;margin-bottom:10px;}
+.tb-btn{background:var(--gold2);border:none;border-radius:5px;padding:6px 14px;color:#000;font-family:'Cinzel',serif;font-size:0.75rem;cursor:pointer;pointer-events:all;}
+
+/* blueprint */
+.bp-item{display:flex;align-items:center;gap:8px;padding:8px;background:#0d0a06;border:1px solid var(--border);border-radius:6px;margin-bottom:6px;cursor:pointer;}
+.bp-item:hover{border-color:var(--gold2);}
+.bp-thumb{width:50px;height:40px;background:#1a1208;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;}
+
+/* online players strip */
+#online-strip{position:absolute;top:0;left:0;right:0;background:rgba(13,10,6,0.85);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;padding:4px 10px;font-size:0.75rem;color:var(--text2);overflow:hidden;white-space:nowrap;z-index:180;}
+.online-player-chip{display:inline-flex;align-items:center;gap:4px;background:#1a1208;border:1px solid var(--border);border-radius:10px;padding:2px 8px;margin-right:4px;}
+.online-player-chip .odot{width:6px;height:6px;border-radius:50%;background:var(--green);}
+
+/* Util */
+.flex{display:flex;}.gap-6{gap:6px;}.gap-10{gap:10px;}.mt-10{margin-top:10px;}.mt-6{margin-top:6px;}
+.w-full{width:100%;}.text-center{text-align:center;}.text-gold{color:var(--gold);}
+.text-sm{font-size:0.85rem;}.text-xs{font-size:0.75rem;}.text-muted{color:var(--text2);}
+.badge{display:inline-block;background:var(--gold2);color:#000;border-radius:10px;padding:1px 6px;font-size:0.7rem;font-family:'Cinzel',serif;}
+.section-sep{height:1px;background:var(--border);margin:12px 0;}
+.input-std{width:100%;background:#0d0a06;border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--text);font-size:0.85rem;outline:none;font-family:'Crimson Pro',serif;}
+.input-std:focus{border-color:var(--gold2);}
+.btn-std{background:linear-gradient(135deg,#8d4a00,var(--gold2));border:none;border-radius:6px;padding:8px 14px;color:#000;font-family:'Cinzel',serif;font-size:0.8rem;cursor:pointer;transition:all 0.2s;}
+.btn-std:hover{filter:brightness(1.1);}
+.btn-danger{background:var(--red);border:none;border-radius:6px;padding:8px 14px;color:#fff;font-family:'Cinzel',serif;font-size:0.8rem;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<!-- LOADING SCREEN -->
+<div id="loading-screen">
+  <div class="load-logo">TribeForge</div>
+  <div class="load-sub">RISE OF CLANS</div>
+  <div class="load-bar-wrap"><div class="load-bar" id="load-bar"></div></div>
+  <div class="load-tip" id="load-tip">Loading world data…</div>
+</div>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen" class="hidden">
+  <div class="auth-bg" id="auth-bg"></div>
+  <div class="auth-box">
+    <div class="auth-title">⚔ TribeForge</div>
+    <div class="auth-sub">Rise of Clans</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="authTab('login')">Login</button>
+      <button class="auth-tab" id="tab-signup" onclick="authTab('signup')">Sign Up</button>
+    </div>
+    <!-- Login -->
+    <div id="login-form">
+      <div class="auth-field">
+        <label>EMAIL</label>
+        <div class="auth-field-row">
+          <input type="email" id="l-email" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="auth-err" id="l-email-err"></div>
+      </div>
+      <div class="auth-field">
+        <label>PASSWORD</label>
+        <div class="auth-field-row">
+          <input type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password">
+          <button class="eye-btn" onclick="toggleEye('l-pass',this)">👁</button>
+        </div>
+        <div class="auth-err" id="l-pass-err"></div>
+      </div>
+      <button class="auth-btn" onclick="doLogin()">ENTER THE REALM</button>
+      <div id="saved-accounts-wrap" class="saved-accounts"></div>
+    </div>
+    <!-- Signup -->
+    <div id="signup-form" style="display:none">
+      <div class="auth-field">
+        <label>TRIBE NAME (Username)</label>
+        <div class="auth-field-row">
+          <input type="text" id="s-name" placeholder="WarChief" maxlength="20">
+        </div>
+        <div class="auth-err" id="s-name-err"></div>
+      </div>
+      <div class="auth-field">
+        <label>EMAIL</label>
+        <div class="auth-field-row">
+          <input type="email" id="s-email" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="auth-err" id="s-email-err"></div>
+      </div>
+      <div class="auth-field">
+        <label>PASSWORD (min 6 chars)</label>
+        <div class="auth-field-row">
+          <input type="password" id="s-pass" placeholder="••••••••" autocomplete="new-password">
+          <button class="eye-btn" onclick="toggleEye('s-pass',this)">👁</button>
+        </div>
+        <div class="auth-err" id="s-pass-err"></div>
+      </div>
+      <button class="auth-btn" onclick="doSignup()">FORGE YOUR TRIBE</button>
+    </div>
+  </div>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="game-screen" class="hidden">
+  <!-- TOP BAR -->
+  <div id="top-bar">
+    <div class="res-chip"><span class="icon">🪵</span><span class="val" id="res-wood">0</span></div>
+    <div class="res-chip"><span class="icon">🪙</span><span class="val" id="res-gold">0</span></div>
+    <div class="res-chip"><span class="icon">🪨</span><span class="val" id="res-stone">0</span></div>
+    <div class="res-chip"><span class="icon">👥</span><span class="val" id="res-pop">0/0</span></div>
+    <div class="top-sep"></div>
+    <div class="builder-slots" id="builder-slots"></div>
+    <div class="top-user">
+      <div class="top-avatar" id="top-avatar">T</div>
+      <div>
+        <div style="color:var(--text);font-size:0.8rem;" id="top-username">Chief</div>
+        <div class="top-might" id="top-might">⚔ 0 Might</div>
+      </div>
+    </div>
+    <button class="top-btn" onclick="openPanel('settings-modal')">⚙</button>
+    <button class="top-btn" onclick="doLogout()">🚪</button>
+  </div>
+
+  <!-- MIDDLE -->
+  <div id="middle">
+    <!-- Online strip -->
+    <div id="online-strip">
+      <span style="color:var(--gold2);font-family:'Cinzel',serif;font-size:0.7rem;flex-shrink:0;">ONLINE:</span>
+      <div id="online-players-list"></div>
+    </div>
+
+    <!-- MAP -->
+    <div id="map-area" onmousedown="mapDragStart(event)" ontouchstart="mapTouchStart(event)">
+      <div id="sky-overlay"></div>
+      <div class="weather-overlay" id="weather-overlay"></div>
+      <div id="map-canvas-wrap">
+        <div id="map-grid" class="map-grid"></div>
+      </div>
+    </div>
+
+    <!-- MINI MAP -->
+    <canvas id="mini-map-canvas" width="120" height="90" style="position:absolute;bottom:10px;right:10px;width:120px;height:90px;background:#0d0a06;border:1px solid var(--border);border-radius:6px;z-index:200;cursor:pointer;" onclick="centerMap()"></canvas>
+
+    <!-- BUILDING INFO PANEL -->
+    <div id="building-info-panel">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div class="bip-title" id="bip-title">Building</div>
+          <div class="bip-level" id="bip-level">Level 1</div>
+        </div>
+        <button class="close-btn" onclick="closeBIP()">✕</button>
+      </div>
+      <div class="bip-stats" id="bip-stats"></div>
+      <div class="bip-actions">
+        <button class="bip-btn upgrade" id="bip-upgrade" onclick="upgradeSelected()">⬆ Upgrade</button>
+        <button class="bip-btn collect" id="bip-collect" onclick="collectSelected()" style="display:none">📦 Collect</button>
+        <button class="bip-btn destroy" onclick="destroySelected()">🗑 Remove</button>
+      </div>
+    </div>
+
+    <!-- CHAT PANEL -->
+    <div id="chat-panel">
+      <div class="chat-header">
+        💬 Global Chat
+        <button class="close-btn" onclick="toggleChat()">✕</button>
+      </div>
+      <div class="chat-msgs" id="chat-msgs"></div>
+      <div class="chat-input-row">
+        <input type="text" id="chat-input" placeholder="Message…" maxlength="200" onkeydown="if(event.key==='Enter')sendChat()">
+        <button onclick="sendChat()">➤</button>
+      </div>
+    </div>
+
+    <!-- SIDE PANELS -->
+    <div class="side-panel" id="panel-build">
+      <div class="side-panel-header">
+        <div class="side-panel-title">🏗 BUILD</div>
+        <button class="close-btn" onclick="closePanel('panel-build')">✕</button>
+      </div>
+      <div class="side-panel-body" id="build-shop-body"></div>
+    </div>
+
+    <div class="side-panel" id="panel-troops">
+      <div class="side-panel-header">
+        <div class="side-panel-title">⚔ TROOPS</div>
+        <button class="close-btn" onclick="closePanel('panel-troops')">✕</button>
+      </div>
+      <div class="side-panel-body" id="troops-body"></div>
+    </div>
+
+    <div class="side-panel" id="panel-attack">
+      <div class="side-panel-header">
+        <div class="side-panel-title">🗡 ATTACK</div>
+        <button class="close-btn" onclick="closePanel('panel-attack')">✕</button>
+      </div>
+      <div class="side-panel-body" id="attack-body"></div>
+    </div>
+
+    <div class="side-panel" id="panel-quests">
+      <div class="side-panel-header">
+        <div class="side-panel-title">📜 QUESTS</div>
+        <button class="close-btn" onclick="closePanel('panel-quests')">✕</button>
+      </div>
+      <div class="side-panel-body" id="quests-body"></div>
+    </div>
+
+    <div class="side-panel" id="panel-market">
+      <div class="side-panel-header">
+        <div class="side-panel-title">🏪 MARKET</div>
+        <button class="close-btn" onclick="closePanel('panel-market')">✕</button>
+      </div>
+      <div class="side-panel-body" id="market-body"></div>
+    </div>
+
+    <div class="side-panel" id="panel-alliance">
+      <div class="side-panel-header">
+        <div class="side-panel-title">🛡 ALLIANCE</div>
+        <button class="close-btn" onclick="closePanel('panel-alliance')">✕</button>
+      </div>
+      <div class="side-panel-body" id="alliance-body"></div>
+    </div>
+
+    <div class="side-panel" id="panel-leaderboard">
+      <div class="side-panel-header">
+        <div class="side-panel-title">🏆 LEADERBOARD</div>
+        <button class="close-btn" onclick="closePanel('panel-leaderboard')">✕</button>
+      </div>
+      <div class="side-panel-body" id="lb-body"></div>
+    </div>
+
+    <div class="side-panel" id="panel-tech">
+      <div class="side-panel-header">
+        <div class="side-panel-title">🔬 TECH TREE</div>
+        <button class="close-btn" onclick="closePanel('panel-tech')">✕</button>
+      </div>
+      <div class="side-panel-body" id="tech-body"></div>
+    </div>
+
+    <!-- Tutorial overlay -->
+    <div id="tutorial-overlay"></div>
+  </div>
+
+  <!-- BOTTOM BAR -->
+  <div id="bottom-bar">
+    <button class="bb-btn" onclick="togglePanel('panel-build')"><span class="bb-icon">🏗</span>Build</button>
+    <button class="bb-btn" onclick="togglePanel('panel-troops')"><span class="bb-icon">⚔</span>Troops</button>
+    <button class="bb-btn" onclick="togglePanel('panel-attack')"><span class="bb-icon">🗡</span>Attack</button>
+    <button class="bb-btn" onclick="togglePanel('panel-quests')"><span class="bb-icon">📜</span>Quests</button>
+    <button class="bb-btn" onclick="togglePanel('panel-tech')"><span class="bb-icon">🔬</span>Tech</button>
+    <button class="bb-btn" onclick="togglePanel('panel-market')"><span class="bb-icon">🏪</span>Market</button>
+    <button class="bb-btn" onclick="togglePanel('panel-alliance')"><span class="bb-icon">🛡</span>Clan</button>
+    <button class="bb-btn" onclick="togglePanel('panel-leaderboard')"><span class="bb-icon">🏆</span>Ranks</button>
+    <button class="bb-btn" onclick="openDailyReward()"><span class="bb-icon">🎁</span>Daily</button>
+    <button class="bb-btn" onclick="toggleChat()"><span class="bb-icon">💬</span>Chat</button>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay hidden" id="settings-modal" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal-box">
+    <div class="modal-title">⚙ SETTINGS</div>
+    <div class="setting-row">
+      <span class="setting-label">🎵 Background Music</span>
+      <label class="toggle"><input type="checkbox" id="set-music" checked onchange="updateAudio()"><div class="toggle-slider"></div></label>
+    </div>
+    <div class="setting-row">
+      <span class="setting-label">🔊 Sound Effects</span>
+      <label class="toggle"><input type="checkbox" id="set-sfx" checked onchange="updateAudio()"><div class="toggle-slider"></div></label>
+    </div>
+    <div class="setting-row">
+      <span class="setting-label">🎚 Music Volume</span>
+      <input type="range" id="set-vol" min="0" max="1" step="0.05" value="0.3" onchange="updateAudio()" style="width:120px;">
+    </div>
+    <div class="section-sep"></div>
+    <div class="modal-title" style="font-size:0.9rem;margin-bottom:8px;">📋 SOUND LOG</div>
+    <div id="sound-log" style="background:#0d0a06;border:1px solid var(--border);border-radius:6px;height:100px;overflow-y:auto;padding:8px;font-size:0.75rem;color:var(--text2);"></div>
+    <div class="section-sep"></div>
+    <div class="modal-title" style="font-size:0.9rem;margin-bottom:8px;">🗺 BLUEPRINTS</div>
+    <div id="blueprints-wrap"></div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="btn-std" onclick="saveBlueprint()">💾 Save Layout</button>
+    </div>
+    <div class="section-sep"></div>
+    <button class="btn-danger w-full" onclick="closePanel('settings-modal')">CLOSE</button>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="battle-modal" onclick="">
+  <div class="modal-box battle-screen" id="battle-box"></div>
+</div>
+
+<div class="modal-overlay hidden" id="daily-modal" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal-box">
+    <div class="modal-title">🎁 DAILY REWARDS</div>
+    <div class="daily-grid" id="daily-grid"></div>
+    <button class="btn-std w-full" id="daily-claim-btn" onclick="claimDaily()">CLAIM TODAY'S REWARD</button>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="verify-modal">
+  <div class="modal-box" style="text-align:center;">
+    <div style="font-size:3rem;margin-bottom:12px;">📧</div>
+    <div class="modal-title">EMAIL VERIFICATION</div>
+    <p style="color:var(--text2);font-size:0.9rem;margin-bottom:16px;">A verification link has been sent to your email. Click below to simulate verification and enter the realm.</p>
+    <button class="btn-std" onclick="simulateVerify()">✅ VERIFY & ENTER</button>
+  </div>
+</div>
+
+<!-- NOTIF STACK -->
+<div id="notif-stack"></div>
+
+<script>
+// ============================================================
+// CONSTANTS & DEFINITIONS
+// ============================================================
+const GRID_SIZE = 50; // grid cells
+const CELL_PX = 56;   // pixels per cell
+const MAX_BUILDERS = 4;
+
+const BUILDING_DEFS = {
+  townhall:   {name:'Town Hall',   icon:'🏰', cat:'resource', size:3, cost:{wood:0,gold:0,stone:0}, desc:'Your main building. Upgrading unlocks new content.', maxLevel:10, produces:{}, workerReq:0, reqLevel:1, reqBuildings:{}},
+  farm:       {name:'Farm',        icon:'🌾', cat:'resource', size:2, cost:{wood:50,gold:20,stone:0},  desc:'Produces food and grants +1 worker per level.', maxLevel:8, produces:{gold:3}, workerReq:1, reqLevel:1, reqBuildings:{}},
+  mine:       {name:'Gold Mine',   icon:'⛏', cat:'resource', size:2, cost:{wood:80,gold:0,stone:20}, desc:'Extracts gold from the earth.', maxLevel:8, produces:{gold:6}, workerReq:1, reqLevel:1, reqBuildings:{townhall:1}},
+  lumbermill: {name:'Lumber Mill', icon:'🪵', cat:'resource', size:2, cost:{wood:0,gold:60,stone:30}, desc:'Chops and processes wood.', maxLevel:8, produces:{wood:5}, workerReq:2, reqLevel:2, reqBuildings:{townhall:2}},
+  quarry:     {name:'Quarry',      icon:'⛰', cat:'resource', size:2, cost:{wood:60,gold:40,stone:0},  desc:'Mines stone from deposits.', maxLevel:8, produces:{stone:4}, workerReq:2, reqLevel:2, reqBuildings:{townhall:2}},
+  warehouse:  {name:'Warehouse',   icon:'🏚', cat:'storage',  size:2, cost:{wood:100,gold:60,stone:40}, desc:'Stores your resources. Required for higher limits.', maxLevel:8, produces:{}, workerReq:0, reqLevel:1, reqBuildings:{townhall:1}},
+  barracks:   {name:'Barracks',    icon:'⚔', cat:'military', size:2, cost:{wood:80,gold:80,stone:40}, desc:'Trains troops for battle.', maxLevel:8, produces:{}, workerReq:2, reqLevel:2, reqBuildings:{townhall:2}},
+  archery:    {name:'Archery Range',icon:'🏹', cat:'military', size:2, cost:{wood:120,gold:100,stone:60}, desc:'Trains archers and ranged units.', maxLevel:8, produces:{}, workerReq:2, reqLevel:3, reqBuildings:{townhall:3,barracks:1}},
+  stable:     {name:'Stable',      icon:'🐎', cat:'military', size:2, cost:{wood:160,gold:140,stone:80}, desc:'Trains cavalry units.', maxLevel:8, produces:{}, workerReq:3, reqLevel:4, reqBuildings:{townhall:4,barracks:2}},
+  house:      {name:'House',       icon:'🏠', cat:'housing',  size:2, cost:{wood:60,gold:30,stone:20}, desc:'Provides housing for your tribe. +5 pop per level.', maxLevel:8, produces:{}, workerReq:0, reqLevel:1, reqBuildings:{townhall:1}},
+  greathouse: {name:'Great House', icon:'🏡', cat:'housing',  size:3, cost:{wood:200,gold:150,stone:100}, desc:'Large housing structure. +15 pop per level.', maxLevel:6, produces:{}, workerReq:0, reqLevel:4, reqBuildings:{townhall:4,house:3}},
+  wall:       {name:'Wall',        icon:'🧱', cat:'defense',  size:1, cost:{wood:20,gold:10,stone:30}, desc:'Defensive wall to protect your tribe.', maxLevel:8, produces:{}, workerReq:0, reqLevel:1, reqBuildings:{}},
+  tower:      {name:'Watch Tower', icon:'🗼', cat:'defense',  size:1, cost:{wood:60,gold:40,stone:80}, desc:'Defends against attackers with arrows.', maxLevel:8, produces:{}, workerReq:1, reqLevel:2, reqBuildings:{townhall:2}},
+  cannon:     {name:'Cannon',      icon:'💣', cat:'defense',  size:2, cost:{wood:100,gold:120,stone:100}, desc:'Powerful cannon that devastates enemy troops.', maxLevel:8, produces:{}, workerReq:1, reqLevel:4, reqBuildings:{townhall:4}},
+  market:     {name:'Market',      icon:'🏪', cat:'market',   size:2, cost:{wood:120,gold:100,stone:60}, desc:'Trade resources with other players.', maxLevel:6, produces:{}, workerReq:1, reqLevel:3, reqBuildings:{townhall:3,warehouse:2}},
+  lab:        {name:'Laboratory',  icon:'🔬', cat:'tech',     size:2, cost:{wood:200,gold:200,stone:200}, desc:'Research new technologies to advance your tribe.', maxLevel:6, produces:{}, workerReq:3, reqLevel:5, reqBuildings:{townhall:5}},
+  altar:      {name:'Altar',       icon:'🏛', cat:'resource', size:2, cost:{wood:300,gold:300,stone:300}, desc:'Sacred altar that generates all resources.', maxLevel:5, produces:{gold:10,wood:8,stone:6}, workerReq:4, reqLevel:6, reqBuildings:{townhall:6,lab:1}},
+};
+
+const TROOP_DEFS = {
+  warrior:  {name:'Warrior',   icon:'⚔', hp:80,  atk:15, cost:{gold:30}, trainTime:10, reqBuilding:'barracks', reqLevel:1, might:5},
+  archer:   {name:'Archer',    icon:'🏹', hp:50,  atk:25, cost:{gold:40}, trainTime:15, reqBuilding:'archery',  reqLevel:1, might:6},
+  cavalry:  {name:'Cavalry',   icon:'🐎', hp:120, atk:20, cost:{gold:60}, trainTime:25, reqBuilding:'stable',   reqLevel:1, might:10},
+  siege:    {name:'Battering Ram',icon:'🪵',hp:200,atk:10,cost:{gold:80,stone:20},trainTime:40,reqBuilding:'stable',reqLevel:3,might:15},
+};
+
+const ENEMY_DEFS = [
+  {name:'Banyaga Scout',    icon:'👹', level:1, hp:60,  atk:8,  reward:{gold:30,wood:20,stone:10},  might:5},
+  {name:'Banyaga Raider',   icon:'👺', level:2, hp:120, atk:15, reward:{gold:60,wood:40,stone:20},  might:10},
+  {name:'Banyaga Champion', icon:'👿', level:3, hp:220, atk:25, reward:{gold:120,wood:80,stone:40}, might:20},
+  {name:'Banyaga Warlord',  icon:'💀', level:4, hp:400, atk:40, reward:{gold:250,wood:150,stone:80},might:40},
+  {name:'Banyaga Overlord', icon:'☠', level:5, hp:700, atk:65, reward:{gold:500,wood:300,stone:160},might:80},
+];
+
+const TECH_DEFS = {
+  farming:    {name:'Advanced Farming',  icon:'🌾', desc:'Farms produce 50% more.',   cost:{gold:200,stone:100}, reqBuilding:'lab', reqLevel:1, effect:'farmBoost'},
+  mining:     {name:'Deep Mining',       icon:'⛏', desc:'Mines produce 50% more.',   cost:{gold:200,stone:100}, reqBuilding:'lab', reqLevel:1, effect:'mineBoost'},
+  fortify:    {name:'Fortifications',    icon:'🧱', desc:'Walls have double HP.',     cost:{gold:300,stone:200}, reqBuilding:'lab', reqLevel:2, effect:'wallBoost'},
+  logistics:  {name:'Logistics',         icon:'🚚', desc:'Builders work 25% faster.', cost:{gold:400,stone:200}, reqBuilding:'lab', reqLevel:3, effect:'buildFast'},
+  tactics:    {name:'Battle Tactics',    icon:'📖', desc:'Troops deal 30% more dmg.', cost:{gold:500,stone:300}, reqBuilding:'lab', reqLevel:4, effect:'troopBoost'},
+  expansion:  {name:'Expansion',         icon:'🗺', desc:'Map size +25%.',            cost:{gold:600,stone:400}, reqBuilding:'lab', reqLevel:5, effect:'mapExpand'},
+};
+
+const QUEST_DEFS = [
+  {id:'q1', title:'First Steps',       desc:'Place your first building',   req:{type:'build',count:1},  reward:{gold:50,wood:50},   xp:10},
+  {id:'q2', title:'Resource Gatherer', desc:'Collect 200 gold',            req:{type:'gold',count:200}, reward:{gold:100,stone:50}, xp:20},
+  {id:'q3', title:'Growing Village',   desc:'Build 5 buildings',           req:{type:'build',count:5},  reward:{wood:200,gold:100}, xp:30},
+  {id:'q4', title:'First Blood',       desc:'Win your first battle',       req:{type:'win',count:1},    reward:{gold:200,wood:100}, xp:50},
+  {id:'q5', title:'Housing Crisis',    desc:'Build 3 houses',              req:{type:'house',count:3},  reward:{gold:150,stone:100},xp:40},
+  {id:'q6', title:'Army Builder',      desc:'Train 10 troops',             req:{type:'troop',count:10}, reward:{gold:300,wood:150}, xp:60},
+  {id:'q7', title:'Tech Pioneer',      desc:'Research 1 technology',       req:{type:'tech',count:1},   reward:{gold:500,stone:200},xp:100},
+  {id:'q8', title:'Mighty Warrior',    desc:'Defeat 10 enemies',           req:{type:'win',count:10},   reward:{gold:1000,stone:400},xp:200},
+];
+
+const DAILY_REWARDS = [
+  {day:1,icon:'🪙',reward:{gold:50}},
+  {day:2,icon:'🪵',reward:{wood:80}},
+  {day:3,icon:'🪨',reward:{stone:60}},
+  {day:4,icon:'⚔',reward:{gold:100,wood:50}},
+  {day:5,icon:'💎',reward:{gold:200,wood:100,stone:80}},
+  {day:6,icon:'🏹',reward:{gold:150,stone:150}},
+  {day:7,icon:'👑',reward:{gold:500,wood:300,stone:200}},
+];
+
+const FAKE_PLAYERS = ['IronChief','StoneFist','WolfKing','FireLord','ColdBane','RageBreaker','TribeGod','WarlordX','ShadowBlade','GoldHammer'];
+const TIPS = ['Build farms to feed your workers.','Upgrade your Town Hall to unlock more buildings.','Keep your builders busy at all times!','Stone walls protect against enemy raids.','Research technologies at the Laboratory.','Form alliances with other players for protection.','Attack Banyaga enemies to earn resources.','Daily rewards compound over time — log in every day!'];
+
+// ============================================================
+// STATE
+// ============================================================
+let G = {}; // game state (player data)
+let session = null;
+let selectedBuildingId = null;
+let placingBuildingType = null;
+let mapOffset = {x:0, y:0};
+let mapScale = 1;
+let dragStart = null;
+let gameTickInterval = null;
+let chatOpen = false;
+let dayNightPhase = 0; // 0-1
+let weatherType = 'clear'; // clear, rain, storm
+let onlinePlayers = [];
+let audioCtx = null;
+let bgMusicNode = null;
+let soundLogEntries = [];
+let tutorialStep = 0;
+let tutorialActive = false;
+
+// ============================================================
+// LOCAL STORAGE HELPERS
+// ============================================================
+const DB = {
+  getAccounts(){ try{return JSON.parse(localStorage.getItem('tf_accounts')||'[]')}catch{return[]} },
+  saveAccounts(a){ localStorage.setItem('tf_accounts',JSON.stringify(a)) },
+  getPlayerData(email){ try{return JSON.parse(localStorage.getItem('tf_pd_'+email)||'null')}catch{return null} },
+  savePlayerData(email,d){ localStorage.setItem('tf_pd_'+email,JSON.stringify(d)) },
+  getSession(){ try{return JSON.parse(localStorage.getItem('tf_session')||'null')}catch{return null} },
+  saveSession(s){ localStorage.setItem('tf_session',JSON.stringify(s)) },
+  clearSession(){ localStorage.removeItem('tf_session') },
+  getChat(){ try{return JSON.parse(localStorage.getItem('tf_chat')||'[]')}catch{return[]} },
+  saveChat(c){ localStorage.setItem('tf_chat',JSON.stringify(c.slice(-100))) }, // keep last 100
+};
+
+// ============================================================
+// INIT
+// ============================================================
+function newPlayerData(email, name){
+  return {
+    email, name,
+    created: Date.now(),
+    lastSeen: Date.now(),
+    resources: {wood:200, gold:150, stone:100},
+    storageMax: {wood:500, gold:500, stone:500},
+    population: 0,
+    maxPopulation: 10,
+    workers: 0,
+    maxWorkers: 2,
+    troops: {},
+    buildings: [
+      {id:'b_th', type:'townhall', x:10, y:10, level:1, upgrading:false, upgradeEnd:0, collected:0}
+    ],
+    buildCount: 1,
+    might: 10,
+    playtime: 0,
+    wins: 0,
+    losses: 0,
+    totalTroops: 0,
+    techResearched: [],
+    questProgress: {},
+    questsClaimed: [],
+    dailyRewards: {lastClaim:0, streak:0},
+    blueprints: [],
+    attackLog: [],
+    activeBattle: null,
+    builders: [],
+    xp: 0,
+    level: 1,
+    bounty: 0,
+    alliance: null,
+    obstacles: null, // generated once
+    verified: false,
+  };
+}
+
+function generateObstacles(seed){
+  const obs = [];
+  const rng = (s)=>{ s = Math.sin(s)*43758.5453; return s - Math.floor(s); };
+  for(let i=0;i<30;i++){
+    obs.push({x:Math.floor(rng(seed+i)*48)+1, y:Math.floor(rng(seed+i*7+13)*48)+1, type: rng(seed+i*3)>0.5?'tree':'rock'});
+  }
+  return obs;
+}
+
+// ============================================================
+// LOADING
+// ============================================================
+window.addEventListener('load', ()=>{
+  const tips = TIPS;
+  let pct = 0;
+  const tipEl = document.getElementById('load-tip');
+  const barEl = document.getElementById('load-bar');
+  const msgs = ['Initializing world…','Loading tribes…','Sharpening swords…','Counting gold…','Summoning enemies…','Ready!'];
+  let step = 0;
+  const iv = setInterval(()=>{
+    pct += Math.random()*12+3;
+    if(pct > 100) pct = 100;
+    barEl.style.width = pct+'%';
+    tipEl.textContent = msgs[Math.min(step++, msgs.length-1)];
+    if(pct >= 100){
+      clearInterval(iv);
+      setTimeout(()=>{
+        document.getElementById('loading-screen').classList.add('fade-out');
+        setTimeout(()=>{ document.getElementById('loading-screen').style.display='none'; bootGame(); }, 600);
+      }, 300);
+    }
+  }, 120);
+  spawnAuthParticles();
+});
+
+function bootGame(){
+  session = DB.getSession();
+  if(session){
+    const pd = DB.getPlayerData(session.email);
+    if(pd){ G = pd; showGame(); return; }
+  }
+  showAuth();
+}
+
+function spawnAuthParticles(){
+  const bg = document.getElementById('auth-bg');
+  if(!bg) return;
+  for(let i=0;i<20;i++){
+    const el = document.createElement('div');
+    el.className = 'auth-bg-particle';
+    const sz = Math.random()*60+20;
+    el.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;background:${['#f5c842','#8d4a00','#fff'][Math.floor(Math.random()*3)]};animation-duration:${8+Math.random()*12}s;animation-delay:-${Math.random()*15}s;`;
+    bg.appendChild(el);
+  }
+}
+
+// ============================================================
+// AUTH
+// ============================================================
+function authTab(t){
+  document.getElementById('login-form').style.display = t==='login'?'block':'none';
+  document.getElementById('signup-form').style.display = t==='signup'?'block':'none';
+  document.getElementById('tab-login').classList.toggle('active', t==='login');
+  document.getElementById('tab-signup').classList.toggle('active', t==='signup');
+  if(t==='login') renderSavedAccounts();
+}
+
+function toggleEye(id, btn){
+  const el = document.getElementById(id);
+  el.type = el.type==='password'?'text':'password';
+  btn.textContent = el.type==='password'?'👁':'🙈';
+}
+
+function validateEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+
+function clearErrors(ids){ ids.forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=''; }); }
+function setError(id, msg){ const el=document.getElementById(id); if(el) el.textContent=msg; }
+
+function doSignup(){
+  const name = document.getElementById('s-name').value.trim();
+  const email = document.getElementById('s-email').value.trim().toLowerCase();
+  const pass = document.getElementById('s-pass').value;
+  clearErrors(['s-name-err','s-email-err','s-pass-err']);
+  let ok = true;
+  if(!name||name.length<2){ setError('s-name-err','Name must be at least 2 characters.'); ok=false; }
+  if(!validateEmail(email)){ setError('s-email-err','Enter a valid email address.'); ok=false; }
+  if(pass.length<6){ setError('s-pass-err','Password must be at least 6 characters.'); ok=false; }
+  if(!ok) return;
+  const accts = DB.getAccounts();
+  if(accts.find(a=>a.email===email)){ setError('s-email-err','This email is already registered.'); return; }
+  // Anti-spam: check for rapid signups
+  const now = Date.now();
+  const recent = accts.filter(a=>a.created > now - 60000);
+  if(recent.length >= 3){ setError('s-email-err','Too many accounts created recently. Please wait.'); return; }
+  accts.push({email, password:btoa(pass), name, created:now});
+  DB.saveAccounts(accts);
+  const pd = newPlayerData(email, name);
+  pd.obstacles = generateObstacles(now);
+  DB.savePlayerData(email, pd);
+  // Show verification modal
+  document.getElementById('verify-modal').classList.remove('hidden');
+  session = {email, name};
+  G = pd;
+}
+
+function simulateVerify(){
+  G.verified = true;
+  DB.savePlayerData(G.email, G);
+  DB.saveSession(session);
+  document.getElementById('verify-modal').classList.add('hidden');
+  showGame();
+  startTutorial();
+}
+
+function doLogin(){
+  const email = document.getElementById('l-email').value.trim().toLowerCase();
+  const pass = document.getElementById('l-pass').value;
+  clearErrors(['l-email-err','l-pass-err']);
+  if(!validateEmail(email)){ setError('l-email-err','Enter a valid email address.'); return; }
+  if(!pass){ setError('l-pass-err','Enter your password.'); return; }
+  const accts = DB.getAccounts();
+  const acct = accts.find(a=>a.email===email && a.password===btoa(pass));
+  if(!acct){ setError('l-pass-err','Incorrect email or password.'); return; }
+  let pd = DB.getPlayerData(email);
+  if(!pd){ pd = newPlayerData(email, acct.name); pd.obstacles = generateObstacles(Date.now()); DB.savePlayerData(email, pd); }
+  // Offline progress
+  applyOfflineProgress(pd);
+  G = pd;
+  session = {email, name: acct.name};
+  DB.saveSession(session);
+  showGame();
+}
+
+function doLogout(){
+  if(!confirm('Return to the overworld? Progress is saved.')) return;
+  DB.clearSession();
+  clearInterval(gameTickInterval);
+  document.getElementById('game-screen').classList.add('hidden');
+  document.getElementById('auth-screen').classList.remove('hidden');
+  document.getElementById('auth-bg').innerHTML='';
+  spawnAuthParticles();
+  authTab('login');
+}
+
+function applyOfflineProgress(pd){
+  const now = Date.now();
+  const elapsed = Math.min(now - pd.lastSeen, 8*3600*1000); // max 8h offline
+  if(elapsed < 60000) return;
+  const secs = elapsed/1000;
+  // Compute production
+  const rates = computeProductionRates(pd);
+  pd.resources.gold = Math.min(pd.storageMax.gold, pd.resources.gold + Math.floor(rates.gold * secs / 60));
+  pd.resources.wood = Math.min(pd.storageMax.wood, pd.resources.wood + Math.floor(rates.wood * secs / 60));
+  pd.resources.stone = Math.min(pd.storageMax.stone, pd.resources.stone + Math.floor(rates.stone * secs / 60));
+  // Check finished upgrades
+  pd.buildings.forEach(b=>{
+    if(b.upgrading && now >= b.upgradeEnd){ b.level++; b.upgrading=false; b.upgradeEnd=0; }
+  });
+  pd.builders = (pd.builders||[]).filter(b=> now < b.end);
+  pd.lastSeen = now;
+  DB.savePlayerData(pd.email, pd);
+}
+
+function computeProductionRates(pd){
+  let rates = {gold:0, wood:0, stone:0};
+  const workers = computeWorkers(pd);
+  pd.buildings.forEach(b=>{
+    const def = BUILDING_DEFS[b.type];
+    if(!def || b.upgrading) return;
+    const workerNeeded = def.workerReq * b.level;
+    if(workers.busy >= workers.total && def.workerReq > 0) return;
+    if(def.produces.gold) rates.gold += def.produces.gold * b.level * (pd.techResearched.includes('mining')&&b.type==='mine'?1.5:1) * (pd.techResearched.includes('farming')&&b.type==='farm'?1.5:1);
+    if(def.produces.wood) rates.wood += def.produces.wood * b.level;
+    if(def.produces.stone) rates.stone += def.produces.stone * b.level;
+    // altar
+    if(def.produces.wood) rates.wood += def.produces.wood * b.level;
+  });
+  return rates;
+}
+
+function computeWorkers(pd){
+  let total = 0, busy = 0;
+  pd.buildings.forEach(b=>{
+    const def = BUILDING_DEFS[b.type];
+    if(!def) return;
+    if(b.type==='farm') total += b.level; // each farm level gives +1 worker
+    if(def.workerReq > 0 && !b.upgrading) busy += def.workerReq;
+  });
+  total = Math.max(total, 2); // base 2 workers
+  return {total, busy};
+}
+
+function renderSavedAccounts(){
+  const wrap = document.getElementById('saved-accounts-wrap');
+  if(!wrap) return;
+  const accts = DB.getAccounts();
+  if(!accts.length){ wrap.innerHTML=''; return; }
+  wrap.innerHTML = `<div class="saved-accounts-title">SAVED ACCOUNTS</div>` +
+    accts.map(a=>`<div class="saved-account-item" onclick="fillLogin('${a.email}')">
+      <div class="saved-account-avatar">${a.name[0].toUpperCase()}</div>
+      <div class="saved-account-info">
+        <div class="saved-account-name">${escHtml(a.name)}</div>
+        <div class="saved-account-email">${escHtml(a.email)}</div>
+      </div>
+    </div>`).join('');
+}
+
+function fillLogin(email){
+  document.getElementById('l-email').value = email;
+  document.getElementById('l-pass').focus();
+}
+
+function showAuth(){
+  document.getElementById('auth-screen').classList.remove('hidden');
+  authTab('login');
+  renderSavedAccounts();
+}
+
+// ============================================================
+// SHOW GAME
+// ============================================================
+function showGame(){
+  document.getElementById('auth-screen').classList.add('hidden');
+  document.getElementById('game-screen').classList.remove('hidden');
+  // Show post-login loading
+  showLoadingOverlay('Entering your realm…', ()=>{
+    initGameUI();
+    initMap();
+    startGameLoop();
+    initAudio();
+    notify('Welcome back, '+G.name+'! ⚔', 'success');
+    renderOnlinePlayers();
+    loadChat();
+    updateResUI();
+    updateBuilderSlots();
+    updateTopBar();
+  });
+}
+
+function showLoadingOverlay(msg, cb){
+  const ov = document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:8500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;';
+  ov.innerHTML=`<div style="font-family:'Cinzel Decorative',cursive;color:var(--gold);font-size:1.5rem;">⚔ TribeForge</div>
+    <div style="color:var(--text2);font-size:0.9rem;">${msg}</div>
+    <div style="width:200px;height:6px;background:#1a1208;border:1px solid var(--border);border-radius:3px;overflow:hidden;">
+      <div style="height:100%;background:linear-gradient(90deg,#8d4a00,var(--gold));animation:shimmer 1s infinite;width:60%;"></div>
+    </div>`;
+  document.body.appendChild(ov);
+  setTimeout(()=>{ ov.remove(); cb(); }, 900);
+}
+
+// ============================================================
+// GAME UI INIT
+// ============================================================
+function initGameUI(){
+  const av = document.getElementById('top-avatar');
+  av.textContent = G.name[0].toUpperCase();
+  document.getElementById('top-username').textContent = G.name;
+  renderBuildShop();
+  renderTroops();
+  renderAttackPanel();
+  renderQuests();
+  renderMarket();
+  renderAlliance();
+  renderLeaderboard();
+  renderTechTree();
+  renderBlueprints();
+}
+
+// ============================================================
+// MAP
+// ============================================================
+function initMap(){
+  const wrap = document.getElementById('map-canvas-wrap');
+  const grid = document.getElementById('map-grid');
+  const totalPx = GRID_SIZE * CELL_PX;
+  wrap.style.width = totalPx+'px';
+  wrap.style.height = totalPx+'px';
+  grid.style.width = totalPx+'px';
+  grid.style.height = totalPx+'px';
+  // Place grid background
+  grid.style.backgroundImage = `
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(135deg, #1a2a0a 25%, #162008 50%, #1a2a0a 75%)`;
+  grid.style.backgroundSize = `${CELL_PX}px ${CELL_PX}px, ${CELL_PX}px ${CELL_PX}px, 100% 100%`;
+  // Center map on town hall
+  const th = G.buildings.find(b=>b.type==='townhall');
+  if(th){
+    const area = document.getElementById('map-area');
+    mapOffset.x = -(th.x * CELL_PX - area.clientWidth/2 + CELL_PX);
+    mapOffset.y = -(th.y * CELL_PX - area.clientHeight/2 + CELL_PX);
+  }
+  applyMapTransform();
+  renderAllBuildings();
+  renderObstacles();
+  // Click on empty grid
+  grid.addEventListener('click', gridClick);
+  grid.addEventListener('mousemove', gridMouseMove);
+  grid.addEventListener('mouseleave', ()=>{ document.querySelectorAll('.grid-cell.hover').forEach(c=>c.classList.remove('hover')); });
+}
+
+function applyMapTransform(){
+  const wrap = document.getElementById('map-canvas-wrap');
+  wrap.style.transform = `translate(${mapOffset.x}px,${mapOffset.y}px) scale(${mapScale})`;
+}
+
+function clampMapOffset(){
+  const area = document.getElementById('map-area');
+  const totalPx = GRID_SIZE * CELL_PX * mapScale;
+  const maxX = 100, minX = -(totalPx - area.clientWidth + 100);
+  const maxY = 100, minY = -(totalPx - area.clientHeight + 100);
+  mapOffset.x = Math.max(minX, Math.min(maxX, mapOffset.x));
+  mapOffset.y = Math.max(minY, Math.min(maxY, mapOffset.y));
+}
+
+// Drag
+let _drag = null;
+function mapDragStart(e){
+  if(placingBuildingType) return;
+  if(e.target.closest('.building-el,.tree-el,.rock-el')) return;
+  _drag = {sx:e.clientX - mapOffset.x, sy:e.clientY - mapOffset.y};
+  document.getElementById('map-area').classList.add('dragging');
+  const move = ev=>{ mapOffset.x=ev.clientX-_drag.sx; mapOffset.y=ev.clientY-_drag.sy; clampMapOffset(); applyMapTransform(); };
+  const up = ()=>{ _drag=null; document.getElementById('map-area').classList.remove('dragging'); document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up); };
+  document.addEventListener('mousemove',move);
+  document.addEventListener('mouseup',up);
+}
+
+let _touch = null;
+function mapTouchStart(e){
+  if(e.touches.length===1){
+    if(placingBuildingType) return;
+    if(e.target.closest('.building-el,.tree-el,.rock-el')) return;
+    _touch = {sx:e.touches[0].clientX - mapOffset.x, sy:e.touches[0].clientY - mapOffset.y};
+  }
+}
+document.addEventListener('touchmove', e=>{
+  if(_touch && e.touches.length===1){
+    mapOffset.x = e.touches[0].clientX - _touch.sx;
+    mapOffset.y = e.touches[0].clientY - _touch.sy;
+    clampMapOffset(); applyMapTransform();
+  }
+},{passive:true});
+document.addEventListener('touchend', ()=>{ _touch=null; });
+
+// Pinch zoom
+let _pinchDist = null;
+document.addEventListener('touchstart', e=>{
+  if(e.touches.length===2){
+    _pinchDist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+  }
+},{passive:true});
+document.addEventListener('touchmove', e=>{
+  if(e.touches.length===2 && _pinchDist){
+    const d = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+    mapScale = Math.max(0.5, Math.min(2, mapScale * (d/_pinchDist)));
+    _pinchDist = d;
+    applyMapTransform();
+  }
+},{passive:true});
+document.addEventListener('touchend', ()=>{ _pinchDist=null; });
+
+// Scroll zoom
+document.getElementById('map-area') && document.addEventListener('wheel', e=>{
+  if(!document.getElementById('game-screen').classList.contains('hidden')){
+    e.preventDefault();
+    mapScale = Math.max(0.5, Math.min(2, mapScale - e.deltaY*0.001));
+    applyMapTransform();
+  }
+},{passive:false});
+
+function centerMap(){
+  const th = G.buildings.find(b=>b.type==='townhall');
+  if(!th) return;
+  const area = document.getElementById('map-area');
+  mapOffset.x = -(th.x * CELL_PX - area.clientWidth/2 + CELL_PX);
+  mapOffset.y = -(th.y * CELL_PX - area.clientHeight/2 + CELL_PX);
+  applyMapTransform();
+}
+
+function gridClick(e){
+  if(!placingBuildingType) return;
+  const rect = document.getElementById('map-grid').getBoundingClientRect();
+  const gx = Math.floor((e.clientX - rect.left) / (CELL_PX * mapScale));
+  const gy = Math.floor((e.clientY - rect.top) / (CELL_PX * mapScale));
+  placeBuilding(placingBuildingType, gx, gy);
+}
+
+let _hoverCell = null;
+function gridMouseMove(e){
+  if(!placingBuildingType) return;
+  const rect = document.getElementById('map-grid').getBoundingClientRect();
+  const gx = Math.floor((e.clientX - rect.left) / (CELL_PX * mapScale));
+  const gy = Math.floor((e.clientY - rect.top) / (CELL_PX * mapScale));
+  if(_hoverCell && (_hoverCell.x!==gx || _hoverCell.y!==gy)){
+    document.querySelectorAll('.grid-cell').forEach(c=>c.classList.remove('hover','blocked'));
+    _hoverCell = {x:gx,y:gy};
+    const def = BUILDING_DEFS[placingBuildingType];
+    const blocked = isCellBlocked(gx,gy,def.size,null);
+    for(let dx=0;dx<def.size;dx++) for(let dy=0;dy<def.size;dy++){
+      const cell = document.querySelector(`[data-cx="${gx+dx}"][data-cy="${gy+dy}"]`);
+      if(cell) cell.classList.add(blocked?'blocked':'hover');
+    }
+  }
+  _hoverCell = {x:gx,y:gy};
+}
+
+function isCellBlocked(x, y, size, skipId){
+  if(x<0||y<0||x+size>GRID_SIZE||y+size>GRID_SIZE) return true;
+  for(const b of G.buildings){
+    if(b.id===skipId) continue;
+    const def = BUILDING_DEFS[b.type];
+    if(!def) continue;
+    const bs = def.size;
+    if(x < b.x+bs && x+size > b.x && y < b.y+bs && y+size > b.y) return true;
+  }
+  // Obstacles
+  if(G.obstacles){
+    for(const o of G.obstacles){
+      if(x<=o.x && o.x<x+size && y<=o.y && o.y<y+size) return true;
+    }
+  }
+  return false;
+}
+
+// ============================================================
+// BUILDING RENDER
+// ============================================================
+function renderAllBuildings(){
+  document.querySelectorAll('.building-el').forEach(e=>e.remove());
+  G.buildings.forEach(b=>renderBuilding(b));
+}
+
+function renderBuilding(b){
+  const def = BUILDING_DEFS[b.type];
+  if(!def) return;
+  const grid = document.getElementById('map-grid');
+  const el = document.createElement('div');
+  el.className = 'building-el';
+  el.id = 'bel_'+b.id;
+  el.dataset.bid = b.id;
+  el.style.left = (b.x * CELL_PX)+'px';
+  el.style.top = (b.y * CELL_PX)+'px';
+  el.style.width = (def.size * CELL_PX)+'px';
+  el.style.height = (def.size * CELL_PX)+'px';
+  const isUpgrading = b.upgrading && Date.now() < b.upgradeEnd;
+  let prog = '';
+  if(isUpgrading){
+    const pct = 1 - (b.upgradeEnd - Date.now())/(b.upgradeEnd - (b.upgradeEnd - getUpgradeDuration(b.type, b.level+1)*1000));
+    prog = `<div class="b-prog"><div class="prog-bar"><div class="prog-fill" id="pf_${b.id}" style="width:${Math.max(0,Math.min(100,pct*100))}%"></div></div></div>`;
+  }
+  el.innerHTML = `${prog}<div class="b-icon">${def.icon}</div><div class="b-name">${def.name} L${b.level}</div>${isUpgrading?'<div class="b-upgrade-badge">⬆</div>':''}`;
+  el.addEventListener('click', (e)=>{ e.stopPropagation(); selectBuilding(b.id); });
+  grid.appendChild(el);
+}
+
+function renderObstacles(){
+  document.querySelectorAll('.tree-el,.rock-el').forEach(e=>e.remove());
+  if(!G.obstacles) return;
+  const grid = document.getElementById('map-grid');
+  G.obstacles.forEach((o,i)=>{
+    const el = document.createElement('div');
+    el.className = o.type==='tree'?'tree-el':'rock-el';
+    el.style.left = (o.x * CELL_PX + CELL_PX*0.1)+'px';
+    el.style.top = (o.y * CELL_PX + CELL_PX*0.1)+'px';
+    el.style.animationDelay = (i*0.15)+'s';
+    el.textContent = o.type==='tree'?'🌲':'🪨';
+    el.title = 'Clear for wood/stone (coming soon)';
+    grid.appendChild(el);
+  });
+}
+
+// ============================================================
+// BUILDING SELECTION & INFO
+// ============================================================
+function selectBuilding(id){
+  if(placingBuildingType){ cancelPlacing(); return; }
+  document.querySelectorAll('.building-el').forEach(e=>e.classList.remove('selected'));
+  selectedBuildingId = id;
+  const b = G.buildings.find(b=>b.id===id);
+  if(!b){ closeBIP(); return; }
+  document.getElementById('bel_'+id)?.classList.add('selected');
+  showBIP(b);
+  playSound('click');
+}
+
+function showBIP(b){
+  const def = BUILDING_DEFS[b.type];
+  if(!def) return;
+  const panel = document.getElementById('building-info-panel');
+  document.getElementById('bip-title').textContent = def.icon+' '+def.name;
+  document.getElementById('bip-level').textContent = `Level ${b.level} / ${def.maxLevel}`;
+  const isUpgrading = b.upgrading && Date.now() < b.upgradeEnd;
+  const upgradeEnd = b.upgradeEnd;
+  let stats = def.desc+'<br>';
+  if(def.produces.gold) stats += `💰 Gold: +${def.produces.gold * b.level}/min<br>`;
+  if(def.produces.wood) stats += `🪵 Wood: +${def.produces.wood * b.level}/min<br>`;
+  if(def.produces.stone) stats += `🪨 Stone: +${def.produces.stone * b.level}/min<br>`;
+  if(b.type==='house') stats += `👥 Housing: +${5*b.level}<br>`;
+  if(b.type==='greathouse') stats += `👥 Housing: +${15*b.level}<br>`;
+  if(isUpgrading){
+    const rem = Math.max(0,Math.ceil((upgradeEnd - Date.now())/1000));
+    stats += `<br>⏱ Upgrading… ${formatTime(rem)} left`;
+  }
+  document.getElementById('bip-stats').innerHTML = stats;
+  // Upgrade button
+  const upBtn = document.getElementById('bip-upgrade');
+  const colBtn = document.getElementById('bip-collect');
+  if(b.level >= def.maxLevel || isUpgrading){
+    upBtn.disabled = true;
+    upBtn.textContent = b.level >= def.maxLevel ? '✅ Max Level' : '⏳ Upgrading…';
+  } else {
+    const upgCost = getUpgradeCost(b.type, b.level);
+    upBtn.disabled = false;
+    upBtn.textContent = `⬆ Upgrade (${costStr(upgCost)})`;
+  }
+  colBtn.style.display = def.produces.gold||def.produces.wood||def.produces.stone ? 'block':'none';
+  panel.classList.add('show');
+}
+
+function closeBIP(){
+  document.getElementById('building-info-panel').classList.remove('show');
+  document.querySelectorAll('.building-el.selected').forEach(e=>e.classList.remove('selected'));
+  selectedBuildingId = null;
+}
+
+function upgradeSelected(){
+  if(!selectedBuildingId) return;
+  const b = G.buildings.find(b=>b.id===selectedBuildingId);
+  if(!b) return;
+  const def = BUILDING_DEFS[b.type];
+  if(!def || b.level >= def.maxLevel) return;
+  if(b.upgrading && Date.now() < b.upgradeEnd){ notify('Already upgrading!','error'); return; }
+  // Check builders
+  const activeBuilders = (G.builders||[]).filter(b=>Date.now() < b.end);
+  if(activeBuilders.length >= MAX_BUILDERS){ notify('All builders are busy!','error'); return; }
+  // Check workers
+  const w = computeWorkers(G);
+  if(def.workerReq > 0 && w.busy + def.workerReq > w.total){ notify('Not enough workers!','error'); return; }
+  const cost = getUpgradeCost(b.type, b.level);
+  if(!spendResources(cost)){ notify('Not enough resources!','error'); return; }
+  const duration = getUpgradeDuration(b.type, b.level+1);
+  b.upgrading = true;
+  b.upgradeEnd = Date.now() + duration*1000;
+  G.builders = G.builders||[];
+  G.builders.push({bid:b.id, end:b.upgradeEnd});
+  saveGame();
+  closeBIP();
+  renderBuilding_update(b.id);
+  updateBuilderSlots();
+  notify(`Upgrading ${def.name} to Level ${b.level+1}… (${formatTime(duration)})`,'');
+  playSound('build');
+}
+
+function collectSelected(){
+  if(!selectedBuildingId) return;
+  const b = G.buildings.find(b=>b.id===selectedBuildingId);
+  if(!b) return;
+  const def = BUILDING_DEFS[b.type];
+  if(!def) return;
+  const amt = Math.floor(b.level * 2);
+  if(def.produces.gold){ G.resources.gold = Math.min(G.storageMax.gold, G.resources.gold + amt * (def.produces.gold||0)); floatText('+'+amt+'g 🪙', 'gold'); }
+  if(def.produces.wood){ G.resources.wood = Math.min(G.storageMax.wood, G.resources.wood + amt * (def.produces.wood||0)); floatText('+'+amt+' 🪵','gold'); }
+  if(def.produces.stone){ G.resources.stone = Math.min(G.storageMax.stone, G.resources.stone + amt * (def.produces.stone||0)); floatText('+'+amt+' 🪨','gold'); }
+  saveGame();
+  updateResUI();
+  playSound('collect');
+  closeBIP();
+}
+
+function destroySelected(){
+  if(!selectedBuildingId) return;
+  const b = G.buildings.find(b=>b.id===selectedBuildingId);
+  if(!b) return;
+  if(b.type==='townhall'){ notify('Cannot remove Town Hall!','error'); return; }
+  if(!confirm('Remove this building? You will get 50% resources back.')) return;
+  const def = BUILDING_DEFS[b.type];
+  const cost = def.cost;
+  G.resources.gold = Math.min(G.storageMax.gold, G.resources.gold + Math.floor((cost.gold||0)*0.5));
+  G.resources.wood = Math.min(G.storageMax.wood, G.resources.wood + Math.floor((cost.wood||0)*0.5));
+  G.resources.stone = Math.min(G.storageMax.stone, G.resources.stone + Math.floor((cost.stone||0)*0.5));
+  G.buildings = G.buildings.filter(bb=>bb.id!==b.id);
+  document.getElementById('bel_'+b.id)?.remove();
+  closeBIP();
+  saveGame();
+  updateResUI();
+  notify('Building removed.','');
+  playSound('destroy');
+}
+
+function renderBuilding_update(id){
+  const b = G.buildings.find(b=>b.id===id);
+  document.getElementById('bel_'+id)?.remove();
+  if(b) renderBuilding(b);
+}
+
+// ============================================================
+// PLACING BUILDINGS
+// ============================================================
+function startPlacing(type){
+  const def = BUILDING_DEFS[type];
+  // Check requirements
+  const thLevel = (G.buildings.find(b=>b.type==='townhall')||{level:0}).level;
+  if(thLevel < def.reqLevel){ notify(`Requires Town Hall level ${def.reqLevel}!`,'error'); return; }
+  for(const [reqType, reqLvl] of Object.entries(def.reqBuildings)){
+    const found = G.buildings.find(b=>b.type===reqType && b.level>=reqLvl);
+    if(!found){ notify(`Requires ${BUILDING_DEFS[reqType]?.name||reqType} level ${reqLvl}!`,'error'); return; }
+  }
+  // Check resources
+  if(!canAfford(def.cost)){ notify('Not enough resources!','error'); return; }
+  placingBuildingType = type;
+  closePanel('panel-build');
+  notify(`Click on the map to place ${def.name}`,'');
+  document.getElementById('map-area').style.cursor = 'crosshair';
+}
+
+function cancelPlacing(){
+  placingBuildingType = null;
+  document.getElementById('map-area').style.cursor = 'grab';
+  document.querySelectorAll('.grid-cell').forEach(c=>{ c.classList.remove('hover','blocked'); });
+}
+
+function placeBuilding(type, gx, gy){
+  const def = BUILDING_DEFS[type];
+  if(isCellBlocked(gx,gy,def.size,null)){ notify('Cannot place here!','error'); return; }
+  if(!spendResources(def.cost)){ notify('Not enough resources!','error'); cancelPlacing(); return; }
+  const id = 'b_'+Date.now();
+  const b = {id, type, x:gx, y:gy, level:1, upgrading:false, upgradeEnd:0, collected:0};
+  G.buildings.push(b);
+  G.buildCount = (G.buildCount||0)+1;
+  cancelPlacing();
+  renderBuilding(b);
+  saveGame();
+  updateResUI();
+  playSound('build');
+  notify(`${def.name} placed! 🏗`,'success');
+  animateBuildEffect(gx,gy);
+  updateQuestProgress('build',1);
+  if(type==='house'||type==='greathouse') updateQuestProgress('house',1);
+  computePopulation();
+  updateTopBar();
+}
+
+function animateBuildEffect(gx, gy){
+  const wrap = document.getElementById('map-canvas-wrap');
+  const el = document.createElement('div');
+  el.style.cssText = `position:absolute;left:${gx*CELL_PX}px;top:${gy*CELL_PX}px;font-size:2rem;pointer-events:none;animation:float-up 1s ease forwards;z-index:999;`;
+  el.textContent='✨';
+  wrap.appendChild(el);
+  setTimeout(()=>el.remove(),1100);
+}
+
+// ============================================================
+// COSTS & RESOURCES
+// ============================================================
+function getUpgradeCost(type, currentLevel){
+  const def = BUILDING_DEFS[type];
+  const mult = Math.pow(1.6, currentLevel);
+  return {
+    wood:  Math.floor((def.cost.wood||0) * mult),
+    gold:  Math.floor((def.cost.gold||0) * mult),
+    stone: Math.floor((def.cost.stone||0) * mult),
+  };
+}
+
+function getUpgradeDuration(type, newLevel){
+  const base = {townhall:120, farm:30, mine:40, lumbermill:50, quarry:50, warehouse:45, barracks:60, archery:70, stable:80, house:25, greathouse:60, wall:15, tower:50, cannon:80, market:60, lab:120, altar:150}[type]||60;
+  let dur = Math.floor(base * Math.pow(1.5, newLevel-1));
+  if((G.techResearched||[]).includes('buildFast')) dur = Math.floor(dur*0.75);
+  return dur;
+}
+
+function canAfford(cost){
+  return G.resources.gold >= (cost.gold||0) && G.resources.wood >= (cost.wood||0) && G.resources.stone >= (cost.stone||0);
+}
+
+function spendResources(cost){
+  if(!canAfford(cost)) return false;
+  G.resources.gold -= (cost.gold||0);
+  G.resources.wood -= (cost.wood||0);
+  G.resources.stone -= (cost.stone||0);
+  return true;
+}
+
+function costStr(cost){
+  const parts = [];
+  if(cost.gold) parts.push(`🪙${cost.gold}`);
+  if(cost.wood) parts.push(`🪵${cost.wood}`);
+  if(cost.stone) parts.push(`🪨${cost.stone}`);
+  return parts.join(' ') || 'Free';
+}
+
+// ============================================================
+// BUILD SHOP
+// ============================================================
+function renderBuildShop(){
+  const cats = {resource:'Resource Buildings',defense:'Defense',military:'Military',storage:'Storage',housing:'Housing',tech:'Technology',market:'Market'};
+  let html = '';
+  for(const [cat, catName] of Object.entries(cats)){
+    const items = Object.entries(BUILDING_DEFS).filter(([,d])=>d.cat===cat);
+    html += `<div class="build-category"><div class="build-cat-title">${catName}</div>`;
+    items.forEach(([type, def])=>{
+      const thLv = (G.buildings.find(b=>b.type==='townhall')||{level:0}).level;
+      const locked = thLv < def.reqLevel || Object.entries(def.reqBuildings).some(([rt,rl])=>!G.buildings.find(b=>b.type===rt&&b.level>=rl));
+      html += `<div class="build-item ${locked?'bi-locked':''}" onclick="${locked?'':'startPlacing(\''+type+'\')'}">
+        <div class="bi-icon">${def.icon}</div>
+        <div class="build-item-info">
+          <div class="bi-name">${def.name}</div>
+          <div class="bi-cost">${costStr(def.cost)}</div>
+          <div class="bi-req">${locked?`Req TH Lv${def.reqLevel}`:'Tap to place'}</div>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+  document.getElementById('build-shop-body').innerHTML = html;
+}
+
+// ============================================================
+// TROOPS
+// ============================================================
+function renderTroops(){
+  let html = `<div style="color:var(--text2);font-size:0.8rem;margin-bottom:12px;">⚔ Train troops to defend and attack. Population: ${G.population||0}/${G.maxPopulation||0}</div>`;
+  for(const [type, def] of Object.entries(TROOP_DEFS)){
+    const has = G.buildings.find(b=>b.type===def.reqBuilding && b.level>=def.reqLevel);
+    const count = (G.troops||{})[type]||0;
+    const training = isTroopTraining(type);
+    html += `<div class="troop-item">
+      <div class="troop-icon">${def.icon}</div>
+      <div class="troop-info">
+        <div class="troop-name">${def.name}</div>
+        <div class="troop-stats">❤${def.hp} ⚔${def.atk} | Cost: ${costStr(def.cost)} | Time:${def.trainTime}s</div>
+      </div>
+      <span class="troop-count">x${count}</span>
+      <button class="train-btn" ${!has||training?'disabled':''} onclick="trainTroop('${type}')">${training?'⏳':'Train'}</button>
+    </div>`;
+  }
+  document.getElementById('troops-body').innerHTML = html;
+}
+
+let troopTimers = {};
+function trainTroop(type){
+  const def = TROOP_DEFS[type];
+  if(!canAfford(def.cost)){ notify('Not enough resources!','error'); return; }
+  const w = computeWorkers(G);
+  if(w.busy >= w.total){ notify('No workers available!','error'); return; }
+  if(G.population >= G.maxPopulation){ notify('Not enough housing!','error'); return; }
+  if(!spendResources(def.cost)){ return; }
+  troopTimers[type] = true;
+  notify(`Training ${def.name}… (${def.trainTime}s)`,'');
+  playSound('build');
+  updateResUI();
+  setTimeout(()=>{
+    G.troops = G.troops||{};
+    G.troops[type] = (G.troops[type]||0)+1;
+    G.totalTroops = (G.totalTroops||0)+1;
+    G.might = computeMight();
+    troopTimers[type] = false;
+    saveGame();
+    renderTroops();
+    updateTopBar();
+    updateQuestProgress('troop',1);
+    notify(`${def.name} trained!`,'success');
+    playSound('collect');
+  }, def.trainTime * 1000);
+  renderTroops();
+}
+
+function isTroopTraining(type){ return !!troopTimers[type]; }
+
+// ============================================================
+// ATTACK
+// ============================================================
+function renderAttackPanel(){
+  let html = `<div style="color:var(--text2);font-size:0.85rem;margin-bottom:12px;">Choose your target. Stronger enemies yield better rewards.</div>
+  <div class="build-cat-title">BANYAGA ENEMIES</div>`;
+  ENEMY_DEFS.forEach((en,i)=>{
+    const troops = Object.values(G.troops||{}).reduce((a,b)=>a+b,0);
+    html += `<div class="build-item" onclick="startBattle(${i})">
+      <div class="bi-icon">${en.icon}</div>
+      <div class="build-item-info">
+        <div class="bi-name">${en.name} (Lv${en.level})</div>
+        <div class="bi-cost">Reward: ${costStr(en.reward)}</div>
+        <div class="bi-req">❤${en.hp} ⚔${en.atk}</div>
+      </div>
+    </div>`;
+  });
+  html += `<div class="section-sep"></div><div class="build-cat-title">ATTACK LOG</div>`;
+  const log = G.attackLog||[];
+  if(!log.length) html += '<div style="color:var(--text2);font-size:0.8rem;">No battles yet.</div>';
+  log.slice(-10).reverse().forEach(entry=>{
+    html += `<div class="market-item" style="flex-direction:column;align-items:flex-start;gap:4px;">
+      <div style="color:${entry.win?'var(--green)':'var(--red)'};font-family:'Cinzel',serif;font-size:0.8rem;">${entry.win?'⚔ VICTORY':'💀 DEFEAT'} vs ${entry.enemy}</div>
+      <div style="color:var(--text2);font-size:0.75rem;">${entry.win?'Gained: '+costStr(entry.reward):'No reward'} — ${new Date(entry.time).toLocaleString()}</div>
+    </div>`;
+  });
+  document.getElementById('attack-body').innerHTML = html;
+}
+
+function startBattle(enemyIdx){
+  const en = ENEMY_DEFS[enemyIdx];
+  const troops = Object.entries(G.troops||{}).filter(([,c])=>c>0);
+  if(!troops.length){ notify('Train troops before attacking!','error'); return; }
+  closePanel('panel-attack');
+  const modal = document.getElementById('battle-modal');
+  modal.classList.remove('hidden');
+  runBattle(en, modal);
+}
+
+function runBattle(enemy, modal){
+  let playerHP = 0, playerAtk = 0;
+  Object.entries(G.troops||{}).forEach(([type,cnt])=>{
+    const d = TROOP_DEFS[type];
+    playerHP += d.hp * cnt;
+    playerAtk += d.atk * cnt;
+  });
+  let enemyHP = enemy.hp, pHP = playerHP;
+  let log = [];
+  let round = 0;
+  const maxRounds = 20;
+  const battleLog = [];
+
+  function renderBattle(){
+    const pPct = Math.max(0,(pHP/playerHP)*100);
+    const ePct = Math.max(0,(enemyHP/enemy.hp)*100);
+    modal.querySelector('#battle-box').innerHTML = `
+      <div style="font-family:'Cinzel',serif;color:var(--gold);font-size:1rem;text-align:center;margin-bottom:16px;">⚔ BATTLE: ${enemy.name}</div>
+      <div class="battle-hp-bars">
+        <div class="battle-side">
+          <div class="battle-side-name">YOUR ARMY</div>
+          <div class="battle-side-icon">⚔</div>
+          <div class="battle-hp-bar"><div class="bhp-fill player" style="width:${pPct}%"></div></div>
+          <div style="color:var(--green);font-size:0.8rem;margin-top:4px;">${Math.floor(pHP)}/${playerHP} HP</div>
+        </div>
+        <div class="battle-vs">VS</div>
+        <div class="battle-side">
+          <div class="battle-side-name">${enemy.name}</div>
+          <div class="battle-side-icon">${enemy.icon}</div>
+          <div class="battle-hp-bar"><div class="bhp-fill enemy" style="width:${ePct}%"></div></div>
+          <div style="color:var(--red);font-size:0.8rem;margin-top:4px;">${Math.floor(enemyHP)}/${enemy.hp} HP</div>
+        </div>
+      </div>
+      <div class="battle-log">${battleLog.slice(-8).map(e=>`<div class="bl-entry">${e}</div>`).join('')}</div>
+      <div class="battle-actions">
+        <button class="battle-btn attack" onclick="battleAttack()">⚔ Attack</button>
+        <button class="battle-btn retreat" onclick="battleRetreat()">🏃 Retreat</button>
+      </div>`;
+  }
+
+  window.battleAttack = function(){
+    round++;
+    const pDmg = Math.floor(playerAtk * (0.8 + Math.random()*0.4));
+    const eDmg = Math.floor(enemy.atk * (0.8 + Math.random()*0.4));
+    enemyHP = Math.max(0, enemyHP - pDmg);
+    pHP = Math.max(0, pHP - eDmg);
+    battleLog.push(`Round ${round}: You deal ${pDmg} dmg. Enemy deals ${eDmg} dmg.`);
+    playSound('battle');
+    if(enemyHP <= 0){
+      battleLog.push(`🏆 VICTORY! ${enemy.name} defeated!`);
+      endBattle(true, enemy);
+    } else if(pHP <= 0 || round >= maxRounds){
+      battleLog.push(`💀 DEFEAT! Your army is routed.`);
+      endBattle(false, enemy);
+    } else {
+      renderBattle();
+    }
+  };
+
+  window.battleRetreat = function(){
+    battleLog.push('🏃 You retreated from battle.');
+    endBattle(false, enemy, true);
+  };
+
+  function endBattle(win, enemy, retreat){
+    const reward = win ? enemy.reward : {};
+    if(win){
+      G.resources.gold = Math.min(G.storageMax.gold, G.resources.gold + (reward.gold||0));
+      G.resources.wood = Math.min(G.storageMax.wood, G.resources.wood + (reward.wood||0));
+      G.resources.stone = Math.min(G.storageMax.stone, G.resources.stone + (reward.stone||0));
+      G.wins = (G.wins||0)+1;
+      G.bounty = (G.bounty||0)+enemy.might;
+      G.might = computeMight();
+      updateQuestProgress('win',1);
+    } else {
+      G.losses = (G.losses||0)+1;
+      // Lose some troops on defeat
+      Object.keys(G.troops||{}).forEach(t=>{ G.troops[t] = Math.max(0, Math.floor((G.troops[t]||0)*0.5)); });
+    }
+    G.attackLog = G.attackLog||[];
+    G.attackLog.push({time:Date.now(), enemy:enemy.name, win, reward, retreat:!!retreat});
+    saveGame();
+    updateResUI();
+    updateTopBar();
+    modal.querySelector('#battle-box').innerHTML = `
+      <div style="text-align:center;">
+        <div style="font-size:3rem;">${win?'🏆':'💀'}</div>
+        <div style="font-family:'Cinzel Decorative',cursive;color:${win?'var(--gold)':'var(--red)'};font-size:1.3rem;margin:8px 0;">${win?'VICTORY!':retreat?'RETREATED':'DEFEAT!'}</div>
+        ${win?`<div style="color:var(--text);margin-bottom:12px;">Rewards: ${costStr(reward)}</div>`:'<div style="color:var(--text2);margin-bottom:12px;">Lost half your troops.</div>'}
+        <button class="btn-std" onclick="document.getElementById('battle-modal').classList.add('hidden');renderAttackPanel();">CONTINUE</button>
+      </div>`;
+    playSound(win?'victory':'defeat');
+  }
+
+  renderBattle();
+}
+
+// ============================================================
+// POPULATION
+// ============================================================
+function computePopulation(){
+  let max = 10; // base
+  G.buildings.forEach(b=>{
+    if(b.type==='house') max += 5*b.level;
+    if(b.type==='greathouse') max += 15*b.level;
+  });
+  G.maxPopulation = max;
+  G.population = Math.min(G.maxPopulation, Object.values(G.troops||{}).reduce((a,b)=>a+b,0));
+  const w = computeWorkers(G);
+  G.workers = w.busy;
+  G.maxWorkers = w.total;
+}
+
+function computeMight(){
+  let m = 0;
+  Object.entries(G.troops||{}).forEach(([t,c])=>{ m += (TROOP_DEFS[t]?.might||0)*c; });
+  m += G.buildings.reduce((a,b)=>a+b.level,0)*2;
+  return m;
+}
+
+// ============================================================
+// STORAGE
+// ============================================================
+function computeStorage(){
+  let max = {wood:500, gold:500, stone:500};
+  G.buildings.forEach(b=>{
+    if(b.type==='warehouse'){ max.gold+=200*b.level; max.wood+=200*b.level; max.stone+=200*b.level; }
+  });
+  G.storageMax = max;
+}
+
+// ============================================================
+// QUESTS
+// ============================================================
+function renderQuests(){
+  let html = '';
+  QUEST_DEFS.forEach(q=>{
+    const prog = (G.questProgress||{})[q.id]||0;
+    const claimed = (G.questsClaimed||[]).includes(q.id);
+    const done = prog >= q.req.count;
+    const pct = Math.min(100,(prog/q.req.count)*100);
+    html += `<div class="quest-item">
+      <div class="qi-title">${q.title} ${claimed?'✅':done?'🎁':''}</div>
+      <div class="qi-desc">${q.desc}</div>
+      <div class="qi-prog"><div class="qi-fill" style="width:${pct}%"></div></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="qi-reward">Reward: ${costStr(q.reward)}</span>
+        ${done && !claimed?`<button class="qi-claim" onclick="claimQuest('${q.id}')">Claim!</button>`:`<span style="color:var(--text2);font-size:0.75rem;">${prog}/${q.req.count}</span>`}
+      </div>
+    </div>`;
+  });
+  document.getElementById('quests-body').innerHTML = html;
+}
+
+function updateQuestProgress(type, amount){
+  G.questProgress = G.questProgress||{};
+  QUEST_DEFS.forEach(q=>{
+    if(q.req.type===type && !(G.questsClaimed||[]).includes(q.id)){
+      G.questProgress[q.id] = (G.questProgress[q.id]||0)+amount;
+    }
+  });
+  saveGame();
+  renderQuests();
+}
+
+function claimQuest(qid){
+  const q = QUEST_DEFS.find(q=>q.id===qid);
+  if(!q) return;
+  G.resources.gold = Math.min(G.storageMax.gold, G.resources.gold + (q.reward.gold||0));
+  G.resources.wood = Math.min(G.storageMax.wood, G.resources.wood + (q.reward.wood||0));
+  G.resources.stone = Math.min(G.storageMax.stone, G.resources.stone + (q.reward.stone||0));
+  G.questsClaimed = G.questsClaimed||[];
+  G.questsClaimed.push(qid);
+  saveGame();
+  updateResUI();
+  renderQuests();
+  notify(`Quest complete! ${costStr(q.reward)}`,'success');
+  playSound('collect');
+}
+
+// ============================================================
+// MARKET
+// ============================================================
+function renderMarket(){
+  const hasMarket = G.buildings.find(b=>b.type==='market');
+  let html = '';
+  if(!hasMarket){
+    html = '<div style="color:var(--text2);text-align:center;padding:20px;">Build a Market to trade resources.</div>';
+  } else {
+    html = `<div class="build-cat-title">TRADE RESOURCES</div>
+    <div style="color:var(--text2);font-size:0.8rem;margin-bottom:12px;">Exchange your surplus resources.</div>`;
+    const trades = [
+      {from:{wood:100},to:{gold:60}},
+      {from:{stone:80},to:{gold:50}},
+      {from:{gold:100},to:{wood:150}},
+      {from:{gold:80},to:{stone:100}},
+      {from:{wood:200},to:{stone:180}},
+    ];
+    trades.forEach((t,i)=>{
+      html += `<div class="market-item">
+        <div class="market-from">${costStr(t.from)}</div>
+        <div class="market-arrow">→</div>
+        <div class="market-to">${costStr(t.to)}</div>
+        <button class="market-action" onclick="doTrade(${i})">Trade</button>
+      </div>`;
+    });
+    window._trades = trades;
+  }
+  document.getElementById('market-body').innerHTML = html;
+}
+
+window.doTrade = function(i){
+  const t = window._trades[i];
+  if(!canAfford(t.from)){ notify('Not enough resources!','error'); return; }
+  spendResources(t.from);
+  Object.entries(t.to).forEach(([res,amt])=>{
+    G.resources[res] = Math.min(G.storageMax[res], G.resources[res]+amt);
+  });
+  saveGame(); updateResUI(); renderMarket();
+  notify('Trade complete!','success');
+  playSound('collect');
+};
+
+// ============================================================
+// ALLIANCE
+// ============================================================
+function renderAlliance(){
+  const accts = DB.getAccounts();
+  let html = `<div class="build-cat-title">YOUR CLAN</div>`;
+  if(!G.alliance){
+    html += `<div style="color:var(--text2);font-size:0.85rem;margin-bottom:12px;">You are not in a clan yet.</div>
+    <input class="input-std" id="clan-name-input" placeholder="Enter clan name…" style="margin-bottom:8px;">
+    <button class="btn-std w-full" onclick="createClan()">⚔ Create Clan</button>
+    <div class="section-sep"></div>
+    <div class="build-cat-title">FIND PLAYERS</div>`;
+  } else {
+    html += `<div style="font-family:'Cinzel',serif;color:var(--gold);font-size:1rem;margin-bottom:12px;">${G.alliance}</div>`;
+    html += `<button class="btn-danger" onclick="leaveClan()" style="margin-bottom:12px;">Leave Clan</button>`;
+    html += `<div class="build-cat-title">MEMBERS</div>`;
+  }
+  // Show fake + real players
+  const fakes = FAKE_PLAYERS.slice(0,5).map(n=>({name:n,fake:true}));
+  const real = accts.filter(a=>a.email!==G.email).map(a=>({name:a.name,fake:false}));
+  [...fakes,...real].forEach(p=>{
+    html += `<div class="alliance-member">
+      <div class="am-avatar">${p.name[0]}</div>
+      <span style="flex:1;font-size:0.85rem;">${escHtml(p.name)}</span>
+      ${!p.fake?`<button class="market-action" onclick="notify('Friend request sent!','success')">+Friend</button>`:''}
+      <div class="online-dot" style="background:${Math.random()>0.5?'var(--green)':'#555'}"></div>
+    </div>`;
+  });
+  document.getElementById('alliance-body').innerHTML = html;
+}
+
+window.createClan = function(){
+  const name = document.getElementById('clan-name-input')?.value.trim();
+  if(!name){ notify('Enter a clan name.','error'); return; }
+  G.alliance = name;
+  saveGame();
+  renderAlliance();
+  notify('Clan created: '+name,'success');
+};
+
+window.leaveClan = function(){
+  G.alliance = null;
+  saveGame();
+  renderAlliance();
+  notify('Left the clan.','');
+};
+
+// ============================================================
+// LEADERBOARD
+// ============================================================
+function renderLeaderboard(){
+  const accts = DB.getAccounts();
+  const real = accts.map(a=>{
+    const pd = DB.getPlayerData(a.email);
+    return {name:a.name, might:pd?.might||0, gold:pd?.resources?.gold||0, wins:pd?.wins||0, pop:pd?.population||0, bounty:pd?.bounty||0, troops:pd?.totalTroops||0, playtime:pd?.playtime||0};
+  });
+  // Add fake players
+  FAKE_PLAYERS.forEach((n,i)=>{
+    real.push({name:n, might:Math.floor(Math.random()*2000)+100, gold:Math.floor(Math.random()*10000), wins:Math.floor(Math.random()*50), pop:Math.floor(Math.random()*100), bounty:Math.floor(Math.random()*500), troops:Math.floor(Math.random()*200), playtime:Math.floor(Math.random()*10000)});
+  });
+  real.sort((a,b)=>b.might-a.might);
+  let html = `<div class="build-cat-title">TOP BY MIGHT ⚔</div>`;
+  real.slice(0,15).forEach((p,i)=>{
+    const medal = ['🥇','🥈','🥉'][i]||`#${i+1}`;
+    html += `<div class="lb-row">
+      <div class="lb-rank">${medal}</div>
+      <div class="lb-name">${escHtml(p.name)}${p.name===G.name?'<span class="badge" style="margin-left:4px;">You</span>':''}</div>
+      <div class="lb-val">⚔${p.might}</div>
+    </div>`;
+  });
+  document.getElementById('lb-body').innerHTML = html;
+}
+
+// ============================================================
+// TECH TREE
+// ============================================================
+function renderTechTree(){
+  const lab = G.buildings.find(b=>b.type==='lab');
+  let html = '';
+  if(!lab){
+    html = '<div style="color:var(--text2);text-align:center;padding:20px;">Build a Laboratory (TH Level 5) to research technologies.</div>';
+  } else {
+    html = `<div style="color:var(--text2);font-size:0.8rem;margin-bottom:12px;">Research technologies to empower your tribe. Lab Level: ${lab.level}</div>`;
+    for(const [id,tech] of Object.entries(TECH_DEFS)){
+      const researched = (G.techResearched||[]).includes(id);
+      const canResearch = lab.level >= tech.reqLevel && canAfford(tech.cost) && !researched;
+      html += `<div class="tech-item ${researched?'researched':''}">
+        <div class="tech-icon">${tech.icon}</div>
+        <div class="tech-info">
+          <div class="tech-name">${tech.name} ${researched?'✅':''}</div>
+          <div class="tech-desc">${tech.desc}</div>
+          <div style="color:var(--text2);font-size:0.75rem;">Cost: ${costStr(tech.cost)} | Req Lab Lv${tech.reqLevel}</div>
+        </div>
+        <button class="tech-btn" ${researched||!canResearch?'disabled':''} onclick="researchTech('${id}')">${researched?'Done':'Research'}</button>
+      </div>`;
+    }
+  }
+  document.getElementById('tech-body').innerHTML = html;
+}
+
+function researchTech(id){
+  const tech = TECH_DEFS[id];
+  if(!tech) return;
+  if(!spendResources(tech.cost)){ notify('Not enough resources!','error'); return; }
+  G.techResearched = G.techResearched||[];
+  G.techResearched.push(id);
+  saveGame();
+  updateResUI();
+  renderTechTree();
+  updateQuestProgress('tech',1);
+  notify(`${tech.name} researched!`,'success');
+  playSound('collect');
+}
+
+// ============================================================
+// DAILY REWARDS
+// ============================================================
+function openDailyReward(){
+  const grid = document.getElementById('daily-grid');
+  const streak = G.dailyRewards?.streak||0;
+  const lastClaim = G.dailyRewards?.lastClaim||0;
+  const today = Math.floor(Date.now()/86400000);
+  const lastDay = Math.floor(lastClaim/86400000);
+  const canClaim = today > lastDay;
+  let html = '';
+  DAILY_REWARDS.forEach((d,i)=>{
+    const claimed = i < streak;
+    const isToday = i === streak % 7;
+    html += `<div class="day-box ${claimed?'claimed':''} ${isToday&&canClaim?'today':''}">
+      <div class="day-num">Day ${d.day}</div>
+      <div class="day-icon">${d.icon}</div>
+      <div class="day-val">${Object.entries(d.reward).map(([k,v])=>`+${v} ${k[0].toUpperCase()}`).join(' ')}</div>
+    </div>`;
+  });
+  grid.innerHTML = html;
+  const btn = document.getElementById('daily-claim-btn');
+  btn.disabled = !canClaim;
+  btn.textContent = canClaim ? 'CLAIM TODAY\'S REWARD' : 'Already claimed today!';
+  document.getElementById('daily-modal').classList.remove('hidden');
+}
+
+function claimDaily(){
+  const today = Math.floor(Date.now()/86400000);
+  const lastDay = Math.floor((G.dailyRewards?.lastClaim||0)/86400000);
+  if(today <= lastDay){ notify('Already claimed today!','error'); return; }
+  const streak = (G.dailyRewards?.streak||0) % 7;
+  const reward = DAILY_REWARDS[streak].reward;
+  Object.entries(reward).forEach(([res,amt])=>{
+    G.resources[res] = Math.min(G.storageMax[res]||500, (G.resources[res]||0)+amt);
+  });
+  G.dailyRewards = {lastClaim:Date.now(), streak:(G.dailyRewards?.streak||0)+1};
+  saveGame();
+  updateResUI();
+  document.getElementById('daily-modal').classList.add('hidden');
+  notify(`Daily reward claimed! ${costStr(reward)}`,'success');
+  playSound('collect');
+}
+
+// ============================================================
+// CHAT
+// ============================================================
+function toggleChat(){
+  chatOpen = !chatOpen;
+  document.getElementById('chat-panel').classList.toggle('open', chatOpen);
+  if(chatOpen) renderChat();
+}
+
+function loadChat(){ renderChat(); }
+
+function renderChat(){
+  const msgs = DB.getChat();
+  const el = document.getElementById('chat-msgs');
+  el.innerHTML = msgs.map(m=>`<div class="chat-msg ${m.system?'system':''}">
+    <span class="cm-name">${escHtml(m.name)}</span><span class="cm-time">${new Date(m.time).toLocaleTimeString()}</span>
+    <div class="cm-text">${escHtml(m.text)}</div>
+  </div>`).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+let lastChatTime = 0;
+function sendChat(){
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if(!text) return;
+  // Anti-spam
+  if(Date.now() - lastChatTime < 2000){ notify('Sending too fast!','error'); return; }
+  lastChatTime = Date.now();
+  if(text.length > 200){ notify('Message too long!','error'); return; }
+  const msgs = DB.getChat();
+  msgs.push({name:G.name, text, time:Date.now(), system:false});
+  DB.saveChat(msgs);
+  input.value = '';
+  renderChat();
+  playSound('click');
+}
+
+// ============================================================
+// ONLINE PLAYERS
+// ============================================================
+function renderOnlinePlayers(){
+  const accts = DB.getAccounts().filter(a=>a.email!==G.email);
+  const fakes = FAKE_PLAYERS.slice(0,6);
+  const allNames = [...accts.map(a=>a.name), ...fakes];
+  const el = document.getElementById('online-players-list');
+  el.innerHTML = allNames.slice(0,8).map(n=>`<span class="online-player-chip"><span class="odot"></span>${escHtml(n)}</span>`).join('');
+}
+
+// ============================================================
+// DAY/NIGHT & WEATHER
+// ============================================================
+function updateDayNight(){
+  dayNightPhase = (dayNightPhase + 0.00028) % 1; // full cycle ~1hr
+  const sky = document.getElementById('sky-overlay');
+  let color;
+  if(dayNightPhase < 0.25){
+    // Dawn
+    const t = dayNightPhase/0.25;
+    color = `rgba(255,160,50,${(1-t)*0.3})`;
+  } else if(dayNightPhase < 0.5){
+    // Day
+    color = 'rgba(255,220,100,0.05)';
+  } else if(dayNightPhase < 0.75){
+    // Dusk
+    const t = (dayNightPhase-0.5)/0.25;
+    color = `rgba(200,80,30,${t*0.25})`;
+  } else {
+    // Night
+    color = 'rgba(10,0,40,0.5)';
+  }
+  sky.style.background = color;
+}
+
+function updateWeather(){
+  // Random weather changes
+  if(Math.random() < 0.001){
+    const weathers = ['clear','clear','clear','rain','storm'];
+    weatherType = weathers[Math.floor(Math.random()*weathers.length)];
+    const ov = document.getElementById('weather-overlay');
+    ov.innerHTML = '';
+    if(weatherType==='rain'||weatherType==='storm'){
+      const cnt = weatherType==='storm'?60:30;
+      for(let i=0;i<cnt;i++){
+        const drop = document.createElement('div');
+        drop.className='rain-drop';
+        drop.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*-100}px;height:${8+Math.random()*12}px;opacity:${0.3+Math.random()*0.5};animation-duration:${0.5+Math.random()*0.5}s;animation-delay:-${Math.random()}s;`;
+        ov.appendChild(drop);
+      }
+      if(weatherType==='storm') notify('⛈ Storm brewing! Production slowed.','');
+      else notify('🌧 Rain! Farms produce more.','');
+    }
+  }
+}
+
+// ============================================================
+// GAME LOOP
+// ============================================================
+function startGameLoop(){
+  clearInterval(gameTickInterval);
+  gameTickInterval = setInterval(gameTick, 1000);
+}
+
+let tickCount = 0;
+function gameTick(){
+  tickCount++;
+  G.playtime = (G.playtime||0)+1;
+
+  // Production
+  computeStorage();
+  computePopulation();
+  const rates = computeProductionRates(G);
+  const weatherMult = weatherType==='rain'?1.2:weatherType==='storm'?0.7:1;
+  G.resources.gold = Math.min(G.storageMax.gold, G.resources.gold + rates.gold/60*weatherMult);
+  G.resources.wood = Math.min(G.storageMax.wood, G.resources.wood + rates.wood/60*weatherMult);
+  G.resources.stone = Math.min(G.storageMax.stone, G.resources.stone + rates.stone/60*weatherMult);
+
+  // Check builder timers
+  const now = Date.now();
+  (G.builders||[]).forEach(bl=>{
+    if(now >= bl.end){
+      const b = G.buildings.find(b=>b.id===bl.bid);
+      if(b && b.upgrading){
+        b.level++;
+        b.upgrading = false;
+        b.upgradeEnd = 0;
+        renderBuilding_update(b.id);
+        notify(`${BUILDING_DEFS[b.type]?.name} upgraded to Level ${b.level}!`,'success');
+        playSound('collect');
+        computePopulation();
+        computeStorage();
+      }
+    }
+  });
+  G.builders = (G.builders||[]).filter(bl=>now < bl.end);
+
+  G.might = computeMight();
+
+  // Update UI every tick
+  updateResUI();
+  if(tickCount % 5 === 0){ updateTopBar(); updateBuilderSlots(); }
+  if(tickCount % 10 === 0){ updateDayNight(); updateWeather(); }
+  if(tickCount % 30 === 0){ saveGame(); }
+  if(tickCount % 60 === 0){ renderOnlinePlayers(); drawMiniMap(); }
+
+  // Update building upgrade progress bars
+  G.buildings.forEach(b=>{
+    if(b.upgrading && Date.now() < b.upgradeEnd){
+      const pf = document.getElementById('pf_'+b.id);
+      if(pf){
+        const dur = b.upgradeEnd - (b.upgradeEnd - getUpgradeDuration(b.type,b.level+1)*1000);
+        const pct = Math.max(0,Math.min(100,(1-(b.upgradeEnd-Date.now())/dur)*100));
+        pf.style.width = pct+'%';
+      }
+    }
+  });
+}
+
+// ============================================================
+// UI UPDATES
+// ============================================================
+function updateResUI(){
+  document.getElementById('res-wood').textContent = Math.floor(G.resources.wood);
+  document.getElementById('res-gold').textContent = Math.floor(G.resources.gold);
+  document.getElementById('res-stone').textContent = Math.floor(G.resources.stone);
+  document.getElementById('res-pop').textContent = `${G.population||0}/${G.maxPopulation||0}`;
+}
+
+function updateTopBar(){
+  document.getElementById('top-might').textContent = `⚔ ${G.might||0} Might`;
+}
+
+function updateBuilderSlots(){
+  const wrap = document.getElementById('builder-slots');
+  const activeBuilders = (G.builders||[]).filter(b=>Date.now()<b.end).length;
+  let html = '';
+  for(let i=0;i<MAX_BUILDERS;i++){
+    const busy = i < activeBuilders;
+    html += `<div class="builder-slot ${busy?'busy':''}" title="${busy?'Builder working':'Builder idle'}">${busy?'🔨':'👷'}</div>`;
+  }
+  wrap.innerHTML = html;
+}
+
+// ============================================================
+// PANELS
+// ============================================================
+function openPanel(id){
+  document.getElementById(id)?.classList.remove('hidden');
+}
+
+function closePanel(id){
+  document.getElementById(id)?.classList.add('hidden');
+  // For side panels
+  document.getElementById(id)?.classList.remove('open');
+}
+
+function togglePanel(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const isOpen = el.classList.contains('open');
+  // Close all side panels
+  document.querySelectorAll('.side-panel').forEach(p=>p.classList.remove('open'));
+  if(!isOpen){
+    el.classList.add('open');
+    // Re-render content
+    if(id==='panel-build') renderBuildShop();
+    if(id==='panel-troops') renderTroops();
+    if(id==='panel-attack') renderAttackPanel();
+    if(id==='panel-quests') renderQuests();
+    if(id==='panel-market') renderMarket();
+    if(id==='panel-alliance') renderAlliance();
+    if(id==='panel-leaderboard') renderLeaderboard();
+    if(id==='panel-tech') renderTechTree();
+    playSound('click');
+  }
+}
+
+// ============================================================
+// BLUEPRINTS
+// ============================================================
+function saveBlueprint(){
+  const name = prompt('Blueprint name:');
+  if(!name) return;
+  const bp = {name, buildings:JSON.parse(JSON.stringify(G.buildings)), saved:Date.now()};
+  G.blueprints = G.blueprints||[];
+  G.blueprints.push(bp);
+  saveGame();
+  renderBlueprints();
+  notify('Blueprint saved!','success');
+}
+
+function renderBlueprints(){
+  const wrap = document.getElementById('blueprints-wrap');
+  if(!wrap) return;
+  const bps = G.blueprints||[];
+  if(!bps.length){ wrap.innerHTML='<div style="color:var(--text2);font-size:0.8rem;">No blueprints saved.</div>'; return; }
+  wrap.innerHTML = bps.map((bp,i)=>`<div class="bp-item" onclick="loadBlueprint(${i})">
+    <div class="bp-thumb">📐</div>
+    <div style="flex:1;">
+      <div style="font-size:0.85rem;color:var(--text);">${escHtml(bp.name)}</div>
+      <div style="font-size:0.75rem;color:var(--text2);">${new Date(bp.saved).toLocaleDateString()}</div>
+    </div>
+    <button class="btn-danger" onclick="event.stopPropagation();deleteBlueprint(${i})" style="padding:4px 8px;font-size:0.7rem;">Del</button>
+  </div>`).join('');
+}
+
+window.loadBlueprint = function(i){
+  if(!confirm('Load this blueprint? Current layout will be replaced.')) return;
+  const bp = G.blueprints[i];
+  G.buildings = JSON.parse(JSON.stringify(bp.buildings));
+  saveGame();
+  renderAllBuildings();
+  notify('Blueprint loaded!','success');
+  closePanel('settings-modal');
+};
+
+window.deleteBlueprint = function(i){
+  G.blueprints.splice(i,1);
+  saveGame();
+  renderBlueprints();
+};
+
+// ============================================================
+// MINI MAP
+// ============================================================
+function drawMiniMap(){
+  const canvas = document.getElementById('mini-map-canvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle = '#1a2a0a';
+  ctx.fillRect(0,0,w,h);
+  const scale = w / (GRID_SIZE * CELL_PX);
+  G.buildings.forEach(b=>{
+    const def = BUILDING_DEFS[b.type];
+    if(!def) return;
+    ctx.fillStyle = b.type==='townhall'?'#f5c842':b.type.includes('house')?'#4caf50':['wall','tower','cannon'].includes(b.type)?'#e53935':['barracks','archery','stable'].includes(b.type)?'#ff7043':'#42a5f5';
+    ctx.fillRect(b.x*CELL_PX*scale, b.y*CELL_PX*scale, def.size*CELL_PX*scale, def.size*CELL_PX*scale);
+  });
+  // Viewport indicator
+  const area = document.getElementById('map-area');
+  const vx = (-mapOffset.x)*scale, vy = (-mapOffset.y)*scale;
+  const vw = area.clientWidth/mapScale*scale, vh = area.clientHeight/mapScale*scale;
+  ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(vx,vy,vw,vh);
+}
+
+// ============================================================
+// AUDIO
+// ============================================================
+function initAudio(){
+  try{
+    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    // Start background music after first user interaction
+    document.addEventListener('click', startBGMusic, {once:true});
+  } catch(e){}
+}
+
+function startBGMusic(){
+  if(!audioCtx || bgMusicNode) return;
+  const settings = getAudioSettings();
+  if(!settings.music) return;
+  try{
+    // Simple generated ambient music
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.frequency.value = 220;
+    osc.type = 'triangle';
+    gain.gain.value = settings.vol * 0.05;
+    osc.start();
+    bgMusicNode = {osc, gain};
+    logSound('Background music started');
+  } catch(e){}
+}
+
+function playSound(type){
+  const settings = getAudioSettings();
+  if(!settings.sfx || !audioCtx) return;
+  try{
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    const configs = {
+      click:  {freq:440, dur:0.05, type:'square', vol:0.1},
+      build:  {freq:330, dur:0.2,  type:'triangle',vol:0.15},
+      collect:{freq:550, dur:0.15, type:'sine',   vol:0.12},
+      battle: {freq:180, dur:0.3,  type:'sawtooth',vol:0.2},
+      victory:{freq:660, dur:0.5,  type:'sine',   vol:0.2},
+      defeat: {freq:110, dur:0.6,  type:'sawtooth',vol:0.2},
+      destroy:{freq:100, dur:0.3,  type:'square', vol:0.15},
+    };
+    const c = configs[type]||configs.click;
+    osc.frequency.value = c.freq;
+    osc.type = c.type;
+    gain.gain.setValueAtTime(c.vol * settings.vol, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + c.dur);
+    osc.start();
+    osc.stop(audioCtx.currentTime + c.dur);
+    logSound(type);
+  } catch(e){}
+}
+
+function getAudioSettings(){
+  return {
+    music: document.getElementById('set-music')?.checked ?? true,
+    sfx:   document.getElementById('set-sfx')?.checked ?? true,
+    vol:   parseFloat(document.getElementById('set-vol')?.value ?? '0.3'),
+  };
+}
+
+function updateAudio(){
+  const s = getAudioSettings();
+  if(bgMusicNode){
+    bgMusicNode.gain.gain.value = s.music ? s.vol * 0.05 : 0;
+  }
+}
+
+function logSound(name){
+  soundLogEntries.unshift({name, time:new Date().toLocaleTimeString()});
+  soundLogEntries = soundLogEntries.slice(0,20);
+  const el = document.getElementById('sound-log');
+  if(el) el.innerHTML = soundLogEntries.map(e=>`<div>${e.time} — ${e.name}</div>`).join('');
+}
+
+// ============================================================
+// TUTORIAL
+// ============================================================
+function startTutorial(){
+  tutorialActive = true;
+  tutorialStep = 0;
+  showTutorialStep();
+}
+
+const TUTORIAL_STEPS = [
+  {text:'Welcome to TribeForge! This is your realm. Your Town Hall is already placed.', target:'#top-bar'},
+  {text:'These are your resources: Wood 🪵, Gold 🪙, and Stone 🪨. Collect them by building resource structures.', target:'#top-bar'},
+  {text:'Tap BUILD to open the building shop and start expanding your tribe!', target:'#bottom-bar'},
+  {text:'Drag the map to explore. Pinch to zoom on mobile!', target:'#map-area'},
+  {text:'You\'re ready! Build, train troops, and conquer. Good luck, Chief! ⚔', target:'#bottom-bar'},
+];
+
+function showTutorialStep(){
+  const ov = document.getElementById('tutorial-overlay');
+  ov.innerHTML = '';
+  if(tutorialStep >= TUTORIAL_STEPS.length){ tutorialActive=false; return; }
+  const step = TUTORIAL_STEPS[tutorialStep];
+  const bubble = document.createElement('div');
+  bubble.className = 'tutorial-bubble';
+  bubble.style.cssText = 'bottom:160px;left:50%;transform:translateX(-50%);';
+  bubble.innerHTML = `<div class="tb-text">${step.text}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="color:var(--text2);font-size:0.75rem;">Step ${tutorialStep+1}/${TUTORIAL_STEPS.length}</span>
+      <button class="tb-btn" onclick="nextTutorial()">Next →</button>
+    </div>`;
+  ov.appendChild(bubble);
+}
+
+function nextTutorial(){
+  tutorialStep++;
+  showTutorialStep();
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+function notify(msg, type=''){
+  const stack = document.getElementById('notif-stack');
+  const el = document.createElement('div');
+  el.className = `notif ${type}`;
+  el.textContent = msg;
+  stack.appendChild(el);
+  setTimeout(()=>{ el.classList.add('fade-out-notif'); setTimeout(()=>el.remove(), 350); }, 3500);
+}
+
+function floatText(text, color){
+  const el = document.createElement('div');
+  el.className = `float-text ${color}`;
+  el.style.left = (30+Math.random()*200)+'px';
+  el.style.top = (100+Math.random()*100)+'px';
+  el.textContent = text;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 1600);
+}
+
+// ============================================================
+// SAVE
+// ============================================================
+function saveGame(){
+  // Anti-exploit: validate resources
+  G.resources.gold = Math.max(0, Math.min(G.storageMax?.gold||9999, G.resources.gold));
+  G.resources.wood = Math.max(0, Math.min(G.storageMax?.wood||9999, G.resources.wood));
+  G.resources.stone = Math.max(0, Math.min(G.storageMax?.stone||9999, G.resources.stone));
+  G.lastSeen = Date.now();
+  DB.savePlayerData(G.email, G);
+}
+
+// ============================================================
+// UTILITIES
+// ============================================================
+function formatTime(secs){
+  if(secs < 60) return secs+'s';
+  if(secs < 3600) return Math.floor(secs/60)+'m '+Math.floor(secs%60)+'s';
+  return Math.floor(secs/3600)+'h '+Math.floor((secs%3600)/60)+'m';
+}
+
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ============================================================
+// KEYBOARD SHORTCUTS
+// ============================================================
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){
+    cancelPlacing();
+    closeBIP();
+    document.querySelectorAll('.side-panel').forEach(p=>p.classList.remove('open'));
+    document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.add('hidden'));
+  }
+});
+
+// Click outside to deselect
+document.getElementById('map-area')?.addEventListener('click', e=>{
+  if(!e.target.closest('.building-el') && !placingBuildingType) closeBIP();
+});
+
+// ============================================================
+// SYSTEM CHAT MESSAGES
+// ============================================================
+function initSystemChat(){
+  const msgs = DB.getChat();
+  if(!msgs.length){
+    msgs.push({name:'System', text:'⚔ Welcome to TribeForge Global Chat! Be respectful.', time:Date.now(), system:true});
+    DB.saveChat(msgs);
+  }
+}
+
+// Periodically simulate other player chat activity
+setInterval(()=>{
+  if(Math.random() < 0.15){
+    const names = FAKE_PLAYERS;
+    const fakeMsgs = ['Anyone want to trade gold?','Just reached level 10!','Those Banyaga are tough!','My troops are ready','Looking for clan members!','GG','How do I upgrade faster?','Storm is slowing my mines 😤'];
+    const msgs = DB.getChat();
+    msgs.push({name:names[Math.floor(Math.random()*names.length)], text:fakeMsgs[Math.floor(Math.random()*fakeMsgs.length)], time:Date.now(), system:false});
+    DB.saveChat(msgs);
+    if(chatOpen) renderChat();
+  }
+}, 15000);
+
+initSystemChat();
+</script>
+</body>
+</html>
