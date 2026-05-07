@@ -1,0 +1,2438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TribeWar — Rise of Clans</title>
+<link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#f0a500;--gold2:#ffd700;--dark:#0d0a06;--panel:#1a120a;--panel2:#241810;
+  --green:#2d5a1b;--green2:#4a8c2a;--blue:#1a3a6a;--red:#7a1a1a;--stone:#4a3d2e;
+  --text:#f5e6c8;--textd:#c4a96e;--border:#5a3e1e;--shadow:rgba(0,0,0,0.7);
+  --sky1:#87ceeb;--sky2:#1a3a6a;--grass:#3a6b1e;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Cinzel',serif;background:var(--dark);color:var(--text);overflow:hidden;width:100vw;height:100vh;touch-action:none;}
+/* ═══ LOADING SCREENS ═══ */
+#loadScreen1,#loadScreen2{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#1a0a00 0%,#000 100%);}
+#loadScreen1 .logo{font-family:'Cinzel Decorative',serif;font-size:clamp(2rem,8vw,5rem);color:var(--gold);text-shadow:0 0 40px var(--gold),0 0 80px #ff6600;animation:pulse 2s infinite;}
+#loadScreen1 .sub{color:var(--textd);font-size:1rem;margin-top:10px;letter-spacing:4px;}
+.load-bar-wrap{width:60%;max-width:400px;height:12px;background:#111;border-radius:6px;margin-top:30px;border:1px solid var(--border);overflow:hidden;}
+.load-bar{height:100%;background:linear-gradient(90deg,#ff6600,var(--gold),#fffb00);border-radius:6px;width:0%;transition:width 0.3s;}
+.load-text{color:var(--textd);margin-top:10px;font-size:0.8rem;letter-spacing:2px;}
+#loadScreen2{background:radial-gradient(ellipse at 50% 30%,#0a1a3a 0%,#000 100%);}
+#loadScreen2 .hero-img{width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,#f0a500,#7a3a00);box-shadow:0 0 60px var(--gold);display:flex;align-items:center;justify-content:center;font-size:80px;animation:float 3s ease-in-out infinite;margin-bottom:20px;}
+#loadScreen2 .welcome{font-family:'Cinzel Decorative',serif;font-size:clamp(1.5rem,5vw,3rem);color:var(--gold);}
+#loadScreen2 .username-display{color:var(--textd);margin-top:8px;font-size:1rem;letter-spacing:3px;}
+@keyframes pulse{0%,100%{text-shadow:0 0 40px var(--gold),0 0 80px #ff6600;}50%{text-shadow:0 0 60px var(--gold),0 0 120px #ff9900,0 0 160px #ff6600;}}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-15px);}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeOut{from{opacity:1;}to{opacity:0;pointer-events:none;}}
+@keyframes sparkle{0%,100%{transform:scale(0) rotate(0deg);opacity:0;}50%{transform:scale(1) rotate(180deg);opacity:1;}}
+@keyframes coin-fly{0%{transform:translateY(0) scale(1);opacity:1;}100%{transform:translateY(-80px) scale(0.5);opacity:0;}}
+@keyframes shake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-8px);}40%,80%{transform:translateX(8px);}}
+@keyframes build-done{0%{transform:scale(1);}30%{transform:scale(1.3);}60%{transform:scale(0.9);}100%{transform:scale(1);}}
+@keyframes rain-drop{0%{transform:translateY(-10px);opacity:1;}100%{transform:translateY(100vh);opacity:0.3;}}
+@keyframes cloud-drift{0%{transform:translateX(-200px);}100%{transform:translateX(110vw);}}
+@keyframes fog{0%,100%{opacity:0.3;}50%{opacity:0.6;}}
+/* ═══ AUTH SCREEN ═══ */
+#authScreen{position:fixed;inset:0;z-index:900;display:none;background:radial-gradient(ellipse at 50% 0%,#1a0e00,#000);overflow:hidden;}
+.auth-bg{position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f0a500' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");}
+.auth-panel{position:relative;background:linear-gradient(135deg,rgba(26,18,10,0.97),rgba(36,24,16,0.97));border:2px solid var(--border);border-radius:16px;padding:36px 32px;width:min(420px,92vw);max-height:92vh;overflow-y:auto;box-shadow:0 0 60px rgba(0,0,0,0.8),inset 0 1px 0 rgba(240,165,0,0.2);animation:fadeIn 0.5s ease;}
+.auth-center{display:flex;align-items:center;justify-content:center;min-height:100vh;}
+.auth-title{font-family:'Cinzel Decorative',serif;font-size:clamp(1.4rem,5vw,2rem);color:var(--gold);text-align:center;text-shadow:0 0 20px var(--gold);margin-bottom:6px;}
+.auth-sub{color:var(--textd);text-align:center;font-size:0.85rem;margin-bottom:28px;letter-spacing:2px;}
+.input-wrap{position:relative;margin-bottom:16px;}
+.input-wrap label{display:block;color:var(--textd);font-size:0.8rem;margin-bottom:6px;letter-spacing:1px;}
+.input-wrap input{width:100%;background:rgba(0,0,0,0.4);border:1.5px solid var(--border);border-radius:8px;padding:12px 44px 12px 14px;color:var(--text);font-family:'Cinzel',serif;font-size:0.95rem;outline:none;transition:border-color 0.2s;}
+.input-wrap input:focus{border-color:var(--gold);}
+.eye-btn{position:absolute;right:12px;bottom:10px;background:none;border:none;color:var(--textd);cursor:pointer;font-size:1.1rem;padding:2px;display:flex;align-items:center;}
+.eye-btn:hover{color:var(--gold);}
+.auth-btn{width:100%;background:linear-gradient(135deg,#c07800,var(--gold),#c07800);border:none;border-radius:8px;padding:14px;color:#1a0a00;font-family:'Cinzel',serif;font-weight:700;font-size:1rem;cursor:pointer;letter-spacing:2px;transition:all 0.2s;margin-top:8px;}
+.auth-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(240,165,0,0.4);}
+.auth-switch{text-align:center;margin-top:16px;color:var(--textd);font-size:0.85rem;}
+.auth-switch a{color:var(--gold);cursor:pointer;text-decoration:none;}
+.auth-switch a:hover{text-decoration:underline;}
+.code-display{background:rgba(240,165,0,0.1);border:1px solid var(--gold);border-radius:8px;padding:12px;text-align:center;margin-bottom:16px;color:var(--gold);font-size:1.4rem;letter-spacing:6px;font-weight:700;}
+.saved-accounts{margin-bottom:16px;}
+.saved-title{color:var(--textd);font-size:0.8rem;margin-bottom:8px;}
+.saved-item{background:rgba(240,165,0,0.08);border:1px solid rgba(240,165,0,0.2);border-radius:6px;padding:8px 12px;cursor:pointer;margin-bottom:6px;display:flex;align-items:center;gap:8px;transition:background 0.2s;}
+.saved-item:hover{background:rgba(240,165,0,0.15);}
+.saved-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#ff6600);display:flex;align-items:center;justify-content:center;font-size:12px;color:#000;font-weight:700;}
+.auth-error{background:rgba(120,20,20,0.3);border:1px solid #8b0000;border-radius:6px;padding:10px;color:#ff6666;font-size:0.82rem;margin-bottom:12px;display:none;}
+/* ═══ GAME WORLD ═══ */
+#gameContainer{position:fixed;inset:0;display:none;overflow:hidden;}
+#skyLayer{position:absolute;inset:0;background:linear-gradient(to bottom,#87ceeb,#c9e8f5);transition:background 10s;}
+#cloudLayer{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.cloud{position:absolute;background:rgba(255,255,255,0.85);border-radius:50px;filter:blur(4px);animation:cloud-drift linear infinite;}
+#fogLayer{position:absolute;inset:0;pointer-events:none;}
+.fog-patch{position:absolute;background:rgba(200,220,255,0.15);border-radius:50%;filter:blur(30px);animation:fog 6s ease-in-out infinite;}
+#rainLayer{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.rain-drop{position:absolute;width:1px;height:20px;background:rgba(150,180,255,0.6);animation:rain-drop linear infinite;}
+#worldMap{position:absolute;width:2000px;height:2000px;cursor:grab;transform-origin:0 0;}
+#worldMap.dragging{cursor:grabbing;}
+#groundLayer{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 60%,#3a6b1e,#2a5010);background-image:repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(0,0,0,0.03) 40px,rgba(0,0,0,0.03) 41px),repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(0,0,0,0.03) 40px,rgba(0,0,0,0.03) 41px);}
+#buildingsLayer{position:absolute;inset:0;}
+.building{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;cursor:pointer;transition:transform 0.1s;user-select:none;}
+.building:hover .bldg-sprite{filter:brightness(1.3) drop-shadow(0 0 12px var(--gold));}
+.building.placing{opacity:0.7;cursor:crosshair;}
+.bldg-sprite{display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:clamp(20px,3vw,40px);position:relative;transition:all 0.3s;}
+.bldg-label{font-size:9px;color:#fff;text-shadow:1px 1px 2px #000;white-space:nowrap;margin-top:2px;background:rgba(0,0,0,0.5);padding:1px 4px;border-radius:3px;}
+.bldg-health{width:100%;height:5px;background:#300;border-radius:3px;margin-top:2px;overflow:hidden;}
+.bldg-health-fill{height:100%;background:linear-gradient(90deg,#2a2,#5f5);border-radius:3px;transition:width 0.3s;}
+.build-timer{position:absolute;top:-22px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);border:1px solid var(--gold);border-radius:10px;padding:2px 8px;font-size:10px;color:var(--gold);white-space:nowrap;z-index:10;}
+/* ═══ HUD ═══ */
+#hud{position:fixed;top:0;left:0;right:0;z-index:100;pointer-events:none;}
+#topBar{background:linear-gradient(to bottom,rgba(10,6,2,0.95),rgba(10,6,2,0.7));border-bottom:1px solid var(--border);padding:6px 10px;display:flex;align-items:center;gap:8px;pointer-events:all;}
+.res-chip{display:flex;align-items:center;gap:5px;background:rgba(0,0,0,0.4);border:1px solid rgba(240,165,0,0.3);border-radius:20px;padding:5px 10px;font-size:0.82rem;color:var(--text);cursor:default;min-width:80px;}
+.res-icon{font-size:1rem;}
+.res-val{font-weight:700;color:var(--gold);}
+#topRight{margin-left:auto;display:flex;align-items:center;gap:6px;}
+.hud-btn{background:linear-gradient(135deg,rgba(26,18,10,0.9),rgba(50,30,10,0.9));border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--text);cursor:pointer;font-family:'Cinzel',serif;font-size:0.78rem;transition:all 0.2s;pointer-events:all;}
+.hud-btn:hover{border-color:var(--gold);color:var(--gold);}
+.online-count{color:#5f5;font-size:0.75rem;background:rgba(0,50,0,0.5);border:1px solid #2a5a2a;border-radius:10px;padding:4px 8px;}
+#mightBar{display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.4);border:1px solid rgba(240,165,0,0.3);border-radius:20px;padding:5px 10px;font-size:0.8rem;}
+/* ═══ BOTTOM BAR ═══ */
+#bottomBar{position:fixed;bottom:0;left:0;right:0;z-index:100;background:linear-gradient(to top,rgba(10,6,2,0.97),rgba(10,6,2,0.8));border-top:1px solid var(--border);padding:8px 6px;display:flex;align-items:center;justify-content:space-around;gap:4px;}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;color:var(--textd);cursor:pointer;padding:4px 8px;border-radius:8px;transition:all 0.2s;font-family:'Cinzel',serif;min-width:50px;}
+.nav-btn .nb-icon{font-size:1.4rem;}
+.nav-btn .nb-label{font-size:0.6rem;letter-spacing:1px;}
+.nav-btn:hover,.nav-btn.active{color:var(--gold);background:rgba(240,165,0,0.1);}
+/* ═══ PANELS ═══ */
+.panel{position:fixed;z-index:200;background:linear-gradient(135deg,rgba(20,12,4,0.98),rgba(35,22,8,0.98));border:2px solid var(--border);border-radius:16px;box-shadow:0 0 60px rgba(0,0,0,0.9);animation:fadeIn 0.3s ease;display:none;}
+.panel.active{display:flex;flex-direction:column;}
+.panel-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);}
+.panel-title{font-family:'Cinzel Decorative',serif;font-size:1rem;color:var(--gold);}
+.close-btn{background:rgba(120,20,20,0.4);border:1px solid #5a1a1a;border-radius:6px;color:#ff6666;padding:4px 10px;cursor:pointer;font-size:0.9rem;transition:all 0.2s;}
+.close-btn:hover{background:rgba(180,30,30,0.5);}
+.panel-body{flex:1;overflow-y:auto;padding:14px 18px;}
+/* ═══ BUILD PANEL ═══ */
+#buildPanel{inset:auto 0 70px 0;max-height:55vh;border-radius:16px 16px 0 0;}
+.build-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;}
+.build-item{background:rgba(0,0,0,0.3);border:1.5px solid var(--border);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer;transition:all 0.2s;position:relative;}
+.build-item:hover:not(.locked){border-color:var(--gold);background:rgba(240,165,0,0.08);transform:translateY(-2px);}
+.build-item.locked{opacity:0.5;cursor:not-allowed;}
+.build-item .bi-icon{font-size:1.8rem;}
+.build-item .bi-name{font-size:0.65rem;color:var(--textd);margin-top:4px;}
+.build-item .bi-cost{font-size:0.7rem;color:var(--gold);}
+.build-item .bi-req{font-size:0.6rem;color:#ff9966;margin-top:2px;}
+.locked-badge{position:absolute;top:4px;right:4px;font-size:0.6rem;background:#5a1a00;border-radius:4px;padding:1px 4px;color:#ff9966;}
+/* ═══ INFO PANEL ═══ */
+#infoPanel{top:50%;left:50%;transform:translate(-50%,-50%);width:min(380px,90vw);max-height:80vh;}
+.info-icon-big{font-size:4rem;text-align:center;margin-bottom:10px;}
+.info-stat{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(90,62,30,0.4);font-size:0.85rem;}
+.info-stat-key{color:var(--textd);}
+.info-stat-val{color:var(--text);font-weight:600;}
+.upgrade-req{background:rgba(240,165,0,0.05);border:1px solid rgba(240,165,0,0.2);border-radius:8px;padding:10px;margin-top:10px;}
+.upgrade-req-title{color:var(--gold);font-size:0.8rem;margin-bottom:8px;font-weight:600;}
+.req-item{display:flex;align-items:center;gap:6px;font-size:0.8rem;margin-bottom:4px;}
+.req-ok{color:#5f5;}
+.req-bad{color:#f66;}
+.action-btn{width:100%;background:linear-gradient(135deg,#c07800,var(--gold));border:none;border-radius:8px;padding:12px;color:#1a0a00;font-family:'Cinzel',serif;font-weight:700;cursor:pointer;margin-top:10px;font-size:0.9rem;letter-spacing:1px;transition:all 0.2s;}
+.action-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(240,165,0,0.4);}
+.action-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+/* ═══ CHAT PANEL ═══ */
+#chatPanel{top:0;right:0;bottom:70px;width:min(340px,95vw);border-radius:16px 0 0 0;}
+.chat-tabs{display:flex;border-bottom:1px solid var(--border);}
+.chat-tab{flex:1;padding:8px;text-align:center;font-size:0.75rem;cursor:pointer;color:var(--textd);transition:all 0.2s;}
+.chat-tab.active{color:var(--gold);border-bottom:2px solid var(--gold);}
+#chatMessages{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px;min-height:0;}
+.chat-msg{background:rgba(0,0,0,0.3);border-radius:8px;padding:7px 10px;font-size:0.8rem;animation:fadeIn 0.2s;}
+.chat-msg .msg-user{color:var(--gold);font-size:0.72rem;margin-bottom:2px;}
+.chat-msg .msg-text{color:var(--text);word-break:break-word;}
+.chat-msg.system{background:rgba(240,165,0,0.05);border:1px solid rgba(240,165,0,0.15);}
+.chat-msg.system .msg-user{color:#aaa;}
+.chat-input-wrap{display:flex;gap:6px;padding:10px;border-top:1px solid var(--border);}
+.chat-input{flex:1;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-family:'Cinzel',serif;font-size:0.8rem;outline:none;}
+.chat-input:focus{border-color:var(--gold);}
+.chat-send{background:linear-gradient(135deg,#c07800,var(--gold));border:none;border-radius:8px;padding:8px 14px;color:#1a0a00;cursor:pointer;font-size:0.9rem;}
+.chat-tools{display:flex;gap:6px;padding:0 10px 8px;}
+.chat-tool-btn{background:rgba(240,165,0,0.1);border:1px solid rgba(240,165,0,0.2);border-radius:6px;color:var(--textd);padding:4px 8px;font-size:0.75rem;cursor:pointer;}
+.chat-tool-btn:hover{color:var(--gold);}
+.notif-toggle{display:flex;align-items:center;gap:6px;padding:6px 10px;font-size:0.75rem;color:var(--textd);border-top:1px solid var(--border);}
+.toggle-sw{width:32px;height:18px;background:#333;border-radius:9px;cursor:pointer;position:relative;transition:background 0.2s;}
+.toggle-sw.on{background:var(--green2);}
+.toggle-sw::after{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;top:2px;left:2px;transition:transform 0.2s;}
+.toggle-sw.on::after{transform:translateX(14px);}
+/* ═══ LEADERBOARD ═══ */
+#leaderPanel{top:50%;left:50%;transform:translate(-50%,-50%);width:min(480px,92vw);max-height:85vh;}
+.lb-tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.lb-tab{padding:6px 12px;border-radius:20px;font-size:0.75rem;border:1px solid var(--border);cursor:pointer;color:var(--textd);transition:all 0.2s;}
+.lb-tab.active{background:var(--gold);color:#1a0a00;border-color:var(--gold);font-weight:700;}
+.lb-row{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;margin-bottom:6px;background:rgba(0,0,0,0.3);border:1px solid rgba(90,62,30,0.3);}
+.lb-rank{font-size:1.2rem;width:30px;text-align:center;font-weight:700;}
+.lb-rank.gold{color:var(--gold);}
+.lb-rank.silver{color:#c0c0c0;}
+.lb-rank.bronze{color:#cd7f32;}
+.lb-info{flex:1;}
+.lb-name{font-size:0.9rem;font-weight:600;}
+.lb-sub{font-size:0.72rem;color:var(--textd);}
+.lb-val{color:var(--gold);font-weight:700;font-size:0.9rem;}
+/* ═══ MARKET ═══ */
+#marketPanel{top:50%;left:50%;transform:translate(-50%,-50%);width:min(480px,92vw);max-height:85vh;}
+.market-item{display:flex;align-items:center;gap:10px;padding:10px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;}
+.market-icon{font-size:1.8rem;width:48px;text-align:center;}
+.market-info{flex:1;}
+.market-name{font-size:0.9rem;font-weight:600;}
+.market-seller{font-size:0.72rem;color:var(--textd);}
+.market-price{color:var(--gold);font-size:0.9rem;font-weight:700;}
+.market-btn{background:linear-gradient(135deg,#c07800,var(--gold));border:none;border-radius:6px;padding:6px 14px;color:#1a0a00;font-family:'Cinzel',serif;font-size:0.75rem;cursor:pointer;}
+/* ═══ BATTLE ═══ */
+#battlePanel{inset:0;border-radius:0;z-index:300;}
+#battleCanvas{width:100%;flex:1;background:linear-gradient(to bottom,#1a3a1a,#0a2010);position:relative;overflow:hidden;}
+.battle-hud{display:flex;justify-content:space-between;padding:10px 16px;background:rgba(0,0,0,0.8);border-bottom:1px solid var(--border);}
+.battle-side{text-align:center;}
+.battle-name{font-size:0.9rem;font-weight:600;color:var(--gold);}
+.battle-hp-bar{width:120px;height:10px;background:#300;border-radius:5px;overflow:hidden;margin-top:4px;}
+.battle-hp-fill{height:100%;background:linear-gradient(90deg,#2a2,#5f5);border-radius:5px;transition:width 0.3s;}
+.troop-sprite{position:absolute;font-size:28px;transition:all 0.5s;cursor:pointer;}
+.enemy-sprite{position:absolute;font-size:32px;}
+.battle-log-wrap{height:80px;overflow-y:auto;padding:6px 12px;background:rgba(0,0,0,0.5);}
+.battle-log-entry{font-size:0.75rem;color:var(--textd);margin-bottom:2px;}
+.battle-controls{display:flex;gap:8px;padding:10px;justify-content:center;}
+.battle-btn{background:linear-gradient(135deg,#c07800,var(--gold));border:none;border-radius:8px;padding:10px 20px;color:#1a0a00;font-family:'Cinzel',serif;font-weight:700;cursor:pointer;}
+/* ═══ QUEST ═══ */
+#questPanel{top:50%;left:50%;transform:translate(-50%,-50%);width:min(420px,92vw);max-height:82vh;}
+.quest-item{background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;}
+.quest-title{font-size:0.9rem;color:var(--gold);font-weight:600;margin-bottom:4px;}
+.quest-desc{font-size:0.78rem;color:var(--textd);margin-bottom:8px;}
+.quest-progress{height:6px;background:#222;border-radius:3px;overflow:hidden;margin-bottom:8px;}
+.quest-prog-fill{height:100%;background:linear-gradient(90deg,#c07800,var(--gold));border-radius:3px;}
+.quest-reward{font-size:0.75rem;color:#5f5;}
+.quest-btn{background:linear-gradient(135deg,#c07800,var(--gold));border:none;border-radius:6px;padding:6px 14px;color:#1a0a00;font-family:'Cinzel',serif;font-size:0.75rem;cursor:pointer;float:right;}
+.quest-req-build{color:#ff9966;font-size:0.72rem;margin-top:4px;}
+/* ═══ TROOPS ═══ */
+#troopPanel{top:50%;left:50%;transform:translate(-50%,-50%);width:min(420px,92vw);max-height:82vh;}
+.troop-item{display:flex;align-items:center;gap:10px;padding:10px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;}
+.troop-icon{font-size:2rem;width:50px;text-align:center;}
+.troop-info{flex:1;}
+.troop-name{font-size:0.9rem;font-weight:600;}
+.troop-stats{font-size:0.72rem;color:var(--textd);}
+.troop-count{font-size:1.1rem;font-weight:700;color:var(--gold);}
+.troop-train-btn{background:linear-gradient(135deg,#006060,#00a0a0);border:none;border-radius:6px;padding:6px 12px;color:#fff;font-family:'Cinzel',serif;font-size:0.75rem;cursor:pointer;}
+.troop-train-btn:disabled{opacity:0.4;cursor:not-allowed;}
+/* ═══ SETTINGS ═══ */
+#settingsPanel{top:50%;left:50%;transform:translate(-50%,-50%);width:min(360px,88vw);max-height:80vh;}
+.setting-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(90,62,30,0.3);}
+.setting-label{font-size:0.88rem;color:var(--textd);}
+.setting-val{color:var(--text);}
+/* ═══ EFFECTS ═══ */
+#effectLayer{position:fixed;inset:0;pointer-events:none;z-index:500;}
+.effect-coin{position:absolute;font-size:1.2rem;animation:coin-fly 1s ease-out forwards;}
+.effect-build{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:3rem;animation:sparkle 0.8s ease-out forwards;z-index:600;}
+.effect-text{position:absolute;font-size:0.9rem;font-weight:700;animation:coin-fly 1.2s ease-out forwards;text-shadow:1px 1px 3px #000;white-space:nowrap;}
+/* ═══ SCROLLBAR ═══ */
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:rgba(0,0,0,0.3);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+/* ═══ NOTIFICATION ═══ */
+#notifStack{position:fixed;top:70px;right:10px;z-index:800;display:flex;flex-direction:column;gap:6px;pointer-events:none;}
+.notif{background:linear-gradient(135deg,rgba(26,18,10,0.97),rgba(50,30,10,0.97));border:1px solid var(--gold);border-radius:10px;padding:10px 14px;max-width:240px;animation:fadeIn 0.3s ease;font-size:0.8rem;pointer-events:all;}
+.notif-title{color:var(--gold);font-weight:700;font-size:0.82rem;margin-bottom:2px;}
+/* ═══ ALLIANCE & FRIENDS ═══ */
+#socialPanel{top:50%;left:50%;transform:translate(-50%,-50%);width:min(440px,92vw);max-height:85vh;}
+.social-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:10px;}
+.social-tab{flex:1;padding:8px;text-align:center;font-size:0.75rem;cursor:pointer;color:var(--textd);transition:all 0.2s;}
+.social-tab.active{color:var(--gold);border-bottom:2px solid var(--gold);}
+.friend-item{display:flex;align-items:center;gap:10px;padding:10px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;}
+.friend-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#ff6600);display:flex;align-items:center;justify-content:center;font-size:14px;color:#000;font-weight:700;flex-shrink:0;}
+.friend-info{flex:1;}
+.friend-name{font-size:0.88rem;font-weight:600;}
+.friend-status{font-size:0.72rem;color:var(--textd);}
+.friend-online{color:#5f5;}
+.friend-actions{display:flex;gap:4px;}
+.friend-btn{background:rgba(240,165,0,0.1);border:1px solid rgba(240,165,0,0.2);border-radius:5px;color:var(--gold);padding:4px 8px;font-size:0.72rem;cursor:pointer;}
+.friend-btn.red{background:rgba(120,20,20,0.3);border-color:#5a1a1a;color:#f66;}
+/* ═══ SEASON BADGE ═══ */
+#seasonBadge{position:fixed;top:60px;left:10px;background:rgba(0,0,0,0.6);border:1px solid rgba(240,165,0,0.3);border-radius:20px;padding:4px 12px;font-size:0.75rem;color:var(--textd);pointer-events:none;z-index:99;}
+#daytimeBadge{position:fixed;top:60px;left:10px;background:rgba(0,0,0,0.6);border:1px solid rgba(240,165,0,0.3);border-radius:20px;padding:4px 12px;font-size:0.75rem;color:var(--textd);pointer-events:none;z-index:99;display:none;}
+/* ═══ POPULATION ═══ */
+#popDisplay{display:flex;align-items:center;gap:5px;background:rgba(0,0,0,0.4);border:1px solid rgba(240,165,0,0.3);border-radius:20px;padding:5px 10px;font-size:0.82rem;}
+/* ═══ MOBILE LANDSCAPE ═══ */
+@media (max-height:500px){
+  #bottomBar{padding:4px 6px;}
+  .nav-btn .nb-label{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ LOADING SCREEN 1 ═══ -->
+<div id="loadScreen1">
+  <div class="logo">⚔️ TribeWar</div>
+  <div class="sub">RISE OF CLANS</div>
+  <div class="load-bar-wrap"><div class="load-bar" id="lb1"></div></div>
+  <div class="load-text" id="loadText">Loading game assets...</div>
+</div>
+
+<!-- ═══ LOADING SCREEN 2 (post-login) ═══ -->
+<div id="loadScreen2" style="display:none;">
+  <div class="hero-img">🏰</div>
+  <div class="welcome">Welcome Back!</div>
+  <div class="username-display" id="welcomeUsername">Chief —</div>
+  <div class="load-bar-wrap" style="width:70%;max-width:300px;margin-top:20px;"><div class="load-bar" id="lb2"></div></div>
+  <div class="load-text" id="loadText2">Loading your kingdom...</div>
+</div>
+
+<!-- ═══ AUTH SCREEN ═══ -->
+<div id="authScreen">
+  <div class="auth-bg"></div>
+  <div class="auth-center">
+    <div class="auth-panel" id="authPanel">
+      <!-- Login -->
+      <div id="loginForm">
+        <div class="auth-title">⚔️ TribeWar</div>
+        <div class="auth-sub">SIGN IN TO YOUR KINGDOM</div>
+        <div id="savedAccountsWrap" class="saved-accounts" style="display:none;">
+          <div class="saved-title">SAVED ACCOUNTS</div>
+          <div id="savedList"></div>
+        </div>
+        <div class="auth-error" id="loginError"></div>
+        <div class="input-wrap">
+          <label>EMAIL ADDRESS</label>
+          <input type="email" id="loginEmail" placeholder="chief@example.com" autocomplete="email">
+        </div>
+        <div class="input-wrap">
+          <label>PASSWORD</label>
+          <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password">
+          <button class="eye-btn" onclick="togglePw('loginPass',this)">👁</button>
+        </div>
+        <button class="auth-btn" onclick="doLogin()">ENTER THE KINGDOM</button>
+        <div class="auth-switch">New warrior? <a onclick="showSignup()">Create Account</a></div>
+      </div>
+      <!-- Signup Step 1 -->
+      <div id="signupForm1" style="display:none;">
+        <div class="auth-title">Join TribeWar</div>
+        <div class="auth-sub">STEP 1 OF 2</div>
+        <div class="auth-error" id="signupError1"></div>
+        <div class="input-wrap">
+          <label>EMAIL ADDRESS</label>
+          <input type="email" id="signEmail" placeholder="chief@example.com">
+        </div>
+        <div class="input-wrap">
+          <label>PASSWORD</label>
+          <input type="password" id="signPass" placeholder="At least 6 characters">
+          <button class="eye-btn" onclick="togglePw('signPass',this)">👁</button>
+        </div>
+        <div class="input-wrap">
+          <label>CONFIRM PASSWORD</label>
+          <input type="password" id="signPass2" placeholder="Repeat password">
+          <button class="eye-btn" onclick="togglePw('signPass2',this)">👁</button>
+        </div>
+        <button class="auth-btn" onclick="goSignup2()">NEXT →</button>
+        <div class="auth-switch">Already a warrior? <a onclick="showLogin()">Sign In</a></div>
+      </div>
+      <!-- Signup Step 2 -->
+      <div id="signupForm2" style="display:none;">
+        <div class="auth-title">Your Identity</div>
+        <div class="auth-sub">STEP 2 OF 2 — CHOOSE YOUR NAME</div>
+        <div class="auth-error" id="signupError2"></div>
+        <div class="input-wrap">
+          <label>CHIEF NAME</label>
+          <input type="text" id="signName" placeholder="Your warrior name" maxlength="20">
+        </div>
+        <div class="input-wrap">
+          <label>YOUR UNIQUE CODE</label>
+          <div class="code-display" id="genCode">—</div>
+        </div>
+        <button class="auth-btn" onclick="doSignup()">CREATE KINGDOM</button>
+        <div class="auth-switch"><a onclick="showSignup()">← Back</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GAME ═══ -->
+<div id="gameContainer">
+  <!-- Sky -->
+  <div id="skyLayer"></div>
+  <!-- Clouds -->
+  <div id="cloudLayer"></div>
+  <!-- Fog -->
+  <div id="fogLayer"></div>
+  <!-- Rain -->
+  <div id="rainLayer"></div>
+
+  <!-- World Map -->
+  <div id="worldMap">
+    <div id="groundLayer"></div>
+    <div id="buildingsLayer"></div>
+  </div>
+
+  <!-- HUD Top -->
+  <div id="hud">
+    <div id="topBar">
+      <div class="res-chip"><span class="res-icon">🪵</span><span class="res-val" id="woodVal">0</span></div>
+      <div class="res-chip"><span class="res-icon">🪙</span><span class="res-val" id="goldVal">0</span></div>
+      <div class="res-chip"><span class="res-icon">🪨</span><span class="res-val" id="stoneVal">0</span></div>
+      <div id="popDisplay"><span>👥</span><span id="popVal">0</span>/<span id="popMax">0</span></div>
+      <div id="topRight">
+        <div id="mightBar">⚔️ <span id="mightVal">0</span></div>
+        <div class="online-count">🟢 <span id="onlineCount">1</span></div>
+        <button class="hud-btn" onclick="openSettings()">⚙️</button>
+        <button class="hud-btn" id="playerTag" onclick="openProfile()">P#0000</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Season & Day badge -->
+  <div id="seasonBadge">🌸 Spring · Day 1</div>
+
+  <!-- Bottom Nav -->
+  <div id="bottomBar">
+    <button class="nav-btn active" id="navVillage" onclick="setNav('village')">
+      <span class="nb-icon">🏘️</span><span class="nb-label">VILLAGE</span>
+    </button>
+    <button class="nav-btn" id="navBuild" onclick="openBuildPanel()">
+      <span class="nb-icon">🔨</span><span class="nb-label">BUILD</span>
+    </button>
+    <button class="nav-btn" id="navTroops" onclick="openTroopPanel()">
+      <span class="nb-icon">⚔️</span><span class="nb-label">TROOPS</span>
+    </button>
+    <button class="nav-btn" id="navAttack" onclick="openAttack()">
+      <span class="nb-icon">🗡️</span><span class="nb-label">ATTACK</span>
+    </button>
+    <button class="nav-btn" id="navQuests" onclick="openQuestPanel()">
+      <span class="nb-icon">📜</span><span class="nb-label">QUESTS</span>
+    </button>
+    <button class="nav-btn" id="navLeader" onclick="openLeader()">
+      <span class="nb-icon">🏆</span><span class="nb-label">RANKS</span>
+    </button>
+    <button class="nav-btn" id="navSocial" onclick="openSocial()">
+      <span class="nb-icon">👥</span><span class="nb-label">SOCIAL</span>
+    </button>
+    <button class="nav-btn" id="navChat" onclick="openChat()">
+      <span class="nb-icon">💬</span><span class="nb-label">CHAT</span>
+    </button>
+    <button class="nav-btn" id="navMarket" onclick="openMarket()">
+      <span class="nb-icon">🛒</span><span class="nb-label">MARKET</span>
+    </button>
+  </div>
+
+  <!-- Panels -->
+  <!-- Build Panel -->
+  <div class="panel" id="buildPanel">
+    <div class="panel-header">
+      <span class="panel-title">🔨 BUILD MENU</span>
+      <button class="close-btn" onclick="closePanel('buildPanel')">✕</button>
+    </div>
+    <div class="panel-body">
+      <div class="build-grid" id="buildGrid"></div>
+    </div>
+  </div>
+
+  <!-- Info Panel -->
+  <div class="panel" id="infoPanel">
+    <div class="panel-header">
+      <span class="panel-title" id="infoPanelTitle">Building Info</span>
+      <button class="close-btn" onclick="closePanel('infoPanel')">✕</button>
+    </div>
+    <div class="panel-body" id="infoPanelBody"></div>
+  </div>
+
+  <!-- Chat Panel -->
+  <div class="panel" id="chatPanel">
+    <div class="panel-header">
+      <span class="panel-title">💬 CHAT</span>
+      <button class="close-btn" onclick="closePanel('chatPanel')">✕</button>
+    </div>
+    <div class="chat-tabs">
+      <div class="chat-tab active" onclick="switchChatTab('global',this)">🌍 GLOBAL</div>
+      <div class="chat-tab" onclick="switchChatTab('alliance',this)">🛡️ ALLIANCE</div>
+    </div>
+    <div style="padding:6px 10px;font-size:0.72rem;color:#5f5;border-bottom:1px solid var(--border);">
+      🟢 Online: <span id="chatOnline">1</span> players
+    </div>
+    <div id="chatMessages"></div>
+    <div class="chat-tools">
+      <button class="chat-tool-btn" onclick="uploadChatImage()">🖼️ Image</button>
+      <button class="chat-tool-btn" onclick="uploadChatVideo()">🎬 Video</button>
+    </div>
+    <div class="notif-toggle">
+      <span>Notifications</span>
+      <div class="toggle-sw on" id="notifToggle" onclick="toggleNotif()"></div>
+    </div>
+    <div class="chat-input-wrap">
+      <input class="chat-input" id="chatInput" placeholder="Type a message..." maxlength="200" onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="chat-send" onclick="sendChat()">▶</button>
+    </div>
+  </div>
+
+  <!-- Leaderboard -->
+  <div class="panel" id="leaderPanel">
+    <div class="panel-header">
+      <span class="panel-title">🏆 LEADERBOARD</span>
+      <button class="close-btn" onclick="closePanel('leaderPanel')">✕</button>
+    </div>
+    <div class="panel-body">
+      <div class="lb-tabs" id="lbTabs">
+        <div class="lb-tab active" onclick="switchLb('might',this)">⚔️ Might</div>
+        <div class="lb-tab" onclick="switchLb('gold',this)">🪙 Gold</div>
+        <div class="lb-tab" onclick="switchLb('wood',this)">🪵 Wood</div>
+        <div class="lb-tab" onclick="switchLb('troops',this)">🗡️ Troops</div>
+        <div class="lb-tab" onclick="switchLb('bounty',this)">💰 Bounty</div>
+        <div class="lb-tab" onclick="switchLb('pop',this)">👥 Pop</div>
+        <div class="lb-tab" onclick="switchLb('playtime',this)">⏱️ Time</div>
+      </div>
+      <div id="lbList"></div>
+    </div>
+  </div>
+
+  <!-- Market -->
+  <div class="panel" id="marketPanel">
+    <div class="panel-header">
+      <span class="panel-title">🛒 MARKET</span>
+      <button class="close-btn" onclick="closePanel('marketPanel')">✕</button>
+    </div>
+    <div class="panel-body">
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <button class="action-btn" style="flex:1;font-size:0.8rem;" onclick="openPostOffer()">+ POST OFFER</button>
+      </div>
+      <div id="marketList"></div>
+    </div>
+  </div>
+
+  <!-- Battle -->
+  <div class="panel" id="battlePanel">
+    <div class="battle-hud">
+      <div class="battle-side">
+        <div class="battle-name" id="btAttName">YOU</div>
+        <div style="font-size:0.72rem;color:var(--textd);">Might: <span id="btAttMight">0</span></div>
+        <div class="battle-hp-bar"><div class="battle-hp-fill" id="btAttHP" style="width:100%"></div></div>
+      </div>
+      <div style="font-size:1.5rem;">⚔️</div>
+      <div class="battle-side">
+        <div class="battle-name" id="btDefName">ENEMY</div>
+        <div style="font-size:0.72rem;color:var(--textd);">Might: <span id="btDefMight">0</span></div>
+        <div class="battle-hp-bar"><div class="battle-hp-fill" id="btDefHP" style="width:100%"></div></div>
+      </div>
+    </div>
+    <div id="battleCanvas">
+      <div id="battleScene" style="position:relative;width:100%;height:100%;overflow:hidden;"></div>
+    </div>
+    <div class="battle-log-wrap"><div id="battleLog"></div></div>
+    <div class="battle-controls">
+      <button class="battle-btn" id="btLeaveBtn" onclick="leaveBattle()">← Leave View</button>
+      <button class="battle-btn" style="background:linear-gradient(135deg,#600,#c00);" id="btSurrBtn" onclick="surrenderBattle()">🏳 Surrender</button>
+    </div>
+  </div>
+
+  <!-- Quests -->
+  <div class="panel" id="questPanel">
+    <div class="panel-header">
+      <span class="panel-title">📜 QUESTS</span>
+      <button class="close-btn" onclick="closePanel('questPanel')">✕</button>
+    </div>
+    <div class="panel-body" id="questList"></div>
+  </div>
+
+  <!-- Troops -->
+  <div class="panel" id="troopPanel">
+    <div class="panel-header">
+      <span class="panel-title">⚔️ TROOPS</span>
+      <button class="close-btn" onclick="closePanel('troopPanel')">✕</button>
+    </div>
+    <div class="panel-body" id="troopList"></div>
+  </div>
+
+  <!-- Social -->
+  <div class="panel" id="socialPanel">
+    <div class="panel-header">
+      <span class="panel-title">👥 SOCIAL</span>
+      <button class="close-btn" onclick="closePanel('socialPanel')">✕</button>
+    </div>
+    <div class="panel-body">
+      <div class="social-tabs">
+        <div class="social-tab active" onclick="switchSocial('friends',this)">👤 Friends</div>
+        <div class="social-tab" onclick="switchSocial('alliance',this)">🛡️ Alliance</div>
+        <div class="social-tab" onclick="switchSocial('add',this)">➕ Add</div>
+      </div>
+      <div id="socialContent"></div>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div class="panel" id="settingsPanel">
+    <div class="panel-header">
+      <span class="panel-title">⚙️ SETTINGS</span>
+      <button class="close-btn" onclick="closePanel('settingsPanel')">✕</button>
+    </div>
+    <div class="panel-body">
+      <div class="setting-row">
+        <span class="setting-label">Sound Effects</span>
+        <div class="toggle-sw on" id="sfxToggle" onclick="toggleSetting('sfx',this)"></div>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Music</span>
+        <div class="toggle-sw on" id="musicToggle" onclick="toggleSetting('music',this)"></div>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Rain Effect</span>
+        <div class="toggle-sw" id="rainToggle" onclick="toggleSetting('rain',this)"></div>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Fog Effect</span>
+        <div class="toggle-sw" id="fogToggle" onclick="toggleSetting('fog',this)"></div>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Account</span>
+        <span class="setting-val" id="settingEmail">—</span>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Player #</span>
+        <span class="setting-val" id="settingNum">—</span>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Season</span>
+        <span class="setting-val" id="settingSeason">—</span>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Playtime</span>
+        <span class="setting-val" id="settingPlaytime">—</span>
+      </div>
+      <button class="action-btn" style="background:linear-gradient(135deg,#600,#900);color:#fff;margin-top:16px;" onclick="logout()">LOGOUT</button>
+    </div>
+  </div>
+
+  <!-- Effects Layer -->
+  <div id="effectLayer"></div>
+  <!-- Notifications -->
+  <div id="notifStack"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//  DATABASE (localStorage)
+// ═══════════════════════════════════════
+const DB = {
+  get(k){try{return JSON.parse(localStorage.getItem('tw_'+k));}catch{return null;}},
+  set(k,v){localStorage.setItem('tw_'+k,JSON.stringify(v));},
+  del(k){localStorage.removeItem('tw_'+k);}
+};
+
+// ═══════════════════════════════════════
+//  GAME DEFINITIONS
+// ═══════════════════════════════════════
+const BUILDINGS = {
+  townhall:   {name:'Town Hall',   icon:'🏛️', cat:'core',   base:{wood:0,gold:0,stone:0}, levels:[
+    {hp:1000,wood:0,gold:0,stone:0,time:0,  produces:{},  storage:{},  unlocks:['lumberjack','goldmine','stonepit','house','warehouse','barracks']},
+    {hp:1500,wood:500,gold:300,stone:200,time:120, produces:{}, storage:{}, unlocks:['farm','wall','tower','blacksmith']},
+    {hp:2200,wood:1200,gold:800,stone:600,time:300,produces:{},storage:{},unlocks:['market','techlab','castle','catapult']},
+    {hp:3500,wood:2500,gold:2000,stone:1500,time:600,produces:{},storage:{},unlocks:['mage_tower','siege_workshop','palace']},
+  ]},
+  lumberjack: {name:'Lumberjack',  icon:'🪵', cat:'resource',base:{wood:100,gold:50,stone:0},  levels:[
+    {hp:300,wood:100,gold:50,stone:0,time:30,  produces:{wood:2},storage:{}},
+    {hp:500,wood:300,gold:150,stone:50,time:90, produces:{wood:5},storage:{}},
+    {hp:700,wood:600,gold:300,stone:150,time:180,produces:{wood:10},storage:{}},
+    {hp:1000,wood:1200,gold:600,stone:300,time:360,produces:{wood:18},storage:{}},
+  ]},
+  goldmine:   {name:'Gold Mine',   icon:'⛏️', cat:'resource',base:{wood:80,gold:0,stone:60},   levels:[
+    {hp:300,wood:80,gold:0,stone:60,time:30,   produces:{gold:2},storage:{}},
+    {hp:500,wood:200,gold:100,stone:150,time:90,produces:{gold:5},storage:{}},
+    {hp:700,wood:500,gold:250,stone:300,time:180,produces:{gold:10},storage:{}},
+    {hp:1000,wood:1000,gold:500,stone:600,time:360,produces:{gold:18},storage:{}},
+  ]},
+  stonepit:   {name:'Stone Pit',   icon:'🪨', cat:'resource',base:{wood:60,gold:30,stone:0},   levels:[
+    {hp:300,wood:60,gold:30,stone:0,time:30,   produces:{stone:1},storage:{}},
+    {hp:500,wood:150,gold:80,stone:0,time:90,  produces:{stone:3},storage:{}},
+    {hp:700,wood:400,gold:200,stone:0,time:180,produces:{stone:7},storage:{}},
+    {hp:1000,wood:800,gold:400,stone:0,time:360,produces:{stone:12},storage:{}},
+  ]},
+  farm:       {name:'Farm',        icon:'🌾', cat:'resource',base:{wood:120,gold:80,stone:40},  levels:[
+    {hp:250,wood:120,gold:80,stone:40,time:60,  produces:{food:3},pop:1,storage:{}},
+    {hp:400,wood:300,gold:200,stone:100,time:120,produces:{food:6},pop:2,storage:{}},
+    {hp:600,wood:700,gold:450,stone:250,time:240,produces:{food:12},pop:3,storage:{}},
+    {hp:900,wood:1500,gold:1000,stone:500,time:480,produces:{food:20},pop:5,storage:{}},
+  ]},
+  house:      {name:'House',       icon:'🏠', cat:'housing', base:{wood:150,gold:50,stone:30},  levels:[
+    {hp:200,wood:150,gold:50,stone:30,time:45, pop:5,storage:{}},
+    {hp:350,wood:400,gold:150,stone:80,time:120,pop:8,storage:{}},
+    {hp:550,wood:900,gold:400,stone:200,time:240,pop:12,storage:{}},
+    {hp:800,wood:1800,gold:900,stone:450,time:480,pop:18,storage:{}},
+  ]},
+  warehouse:  {name:'Warehouse',   icon:'🏪', cat:'storage', base:{wood:200,gold:100,stone:80},  levels:[
+    {hp:400,wood:200,gold:100,stone:80,time:60,  storage:{wood:500,gold:500,stone:300}},
+    {hp:700,wood:500,gold:300,stone:200,time:150,storage:{wood:1200,gold:1200,stone:700}},
+    {hp:1000,wood:1200,gold:700,stone:500,time:300,storage:{wood:2500,gold:2500,stone:1500}},
+    {hp:1500,wood:2500,gold:1500,stone:1000,time:600,storage:{wood:5000,gold:5000,stone:3000}},
+  ]},
+  barracks:   {name:'Barracks',    icon:'⚔️', cat:'military',base:{wood:300,gold:200,stone:100}, levels:[
+    {hp:500,wood:300,gold:200,stone:100,time:90,  trainSlots:3,storage:{}},
+    {hp:800,wood:700,gold:500,stone:250,time:200,trainSlots:6,storage:{}},
+    {hp:1200,wood:1500,gold:1000,stone:600,time:400,trainSlots:10,storage:{}},
+    {hp:1800,wood:3000,gold:2000,stone:1200,time:800,trainSlots:15,storage:{}},
+  ]},
+  wall:       {name:'Wall',        icon:'🧱', cat:'defense', base:{wood:100,gold:50,stone:200},  levels:[
+    {hp:500,wood:100,gold:50,stone:200,time:30,  defense:10,storage:{}},
+    {hp:1000,wood:250,gold:100,stone:500,time:80, defense:20,storage:{}},
+    {hp:1800,wood:600,gold:250,stone:1200,time:180,defense:35,storage:{}},
+    {hp:3000,wood:1200,gold:500,stone:2500,time:360,defense:55,storage:{}},
+  ]},
+  tower:      {name:'Guard Tower', icon:'🗼', cat:'defense', base:{wood:250,gold:150,stone:300}, levels:[
+    {hp:600,wood:250,gold:150,stone:300,time:80,  atk:15,range:2,storage:{}},
+    {hp:1000,wood:600,gold:350,stone:700,time:200,atk:30,range:3,storage:{}},
+    {hp:1600,wood:1300,gold:800,stone:1500,time:400,atk:50,range:4,storage:{}},
+    {hp:2500,wood:2600,gold:1600,stone:3000,time:800,atk:80,range:5,storage:{}},
+  ]},
+  blacksmith: {name:'Blacksmith',  icon:'🔨', cat:'tech',    base:{wood:400,gold:300,stone:200}, levels:[
+    {hp:400,wood:400,gold:300,stone:200,time:120,techSlots:1,storage:{}},
+    {hp:700,wood:900,gold:700,stone:500,time:280,techSlots:2,storage:{}},
+    {hp:1100,wood:2000,gold:1500,stone:1100,time:550,techSlots:3,storage:{}},
+    {hp:1700,wood:4000,gold:3000,stone:2200,time:1100,techSlots:4,storage:{}},
+  ]},
+  techlab:    {name:'Tech Lab',    icon:'🔬', cat:'tech',    base:{wood:600,gold:500,stone:400}, levels:[
+    {hp:500,wood:600,gold:500,stone:400,time:200,storage:{}},
+    {hp:900,wood:1400,gold:1100,stone:900,time:450,storage:{}},
+    {hp:1400,wood:3000,gold:2500,stone:2000,time:900,storage:{}},
+    {hp:2200,wood:6000,gold:5000,stone:4000,time:1800,storage:{}},
+  ]},
+  market:     {name:'Market',      icon:'🛒', cat:'trade',   base:{wood:500,gold:400,stone:300}, levels:[
+    {hp:400,wood:500,gold:400,stone:300,time:150,tradeSlots:3,storage:{}},
+    {hp:700,wood:1200,gold:1000,stone:700,time:350,tradeSlots:6,storage:{}},
+    {hp:1100,wood:2500,gold:2100,stone:1500,time:700,tradeSlots:10,storage:{}},
+    {hp:1700,wood:5000,gold:4200,stone:3000,time:1400,tradeSlots:15,storage:{}},
+  ]},
+  castle:     {name:'Castle',      icon:'🏯', cat:'defense', base:{wood:1000,gold:800,stone:1200},levels:[
+    {hp:2000,wood:1000,gold:800,stone:1200,time:400,defense:50,storage:{}},
+    {hp:3500,wood:2500,gold:2000,stone:3000,time:900,defense:90,storage:{}},
+    {hp:5500,wood:5500,gold:4500,stone:6500,time:1800,defense:150,storage:{}},
+    {hp:8500,wood:11000,gold:9000,stone:13000,time:3600,defense:230,storage:{}},
+  ]},
+  catapult:   {name:'Catapult',    icon:'🏹', cat:'military',base:{wood:800,gold:600,stone:500}, levels:[
+    {hp:500,wood:800,gold:600,stone:500,time:300,atk:60,storage:{}},
+    {hp:900,wood:2000,gold:1500,stone:1200,time:680,atk:110,storage:{}},
+    {hp:1400,wood:4200,gold:3200,stone:2600,time:1350,atk:180,storage:{}},
+    {hp:2200,wood:8500,gold:6500,stone:5200,time:2700,atk:280,storage:{}},
+  ]},
+  mage_tower: {name:'Mage Tower',  icon:'🧙', cat:'defense', base:{wood:1200,gold:1000,stone:800},levels:[
+    {hp:800,wood:1200,gold:1000,stone:800,time:500,atk:80,magic:true,storage:{}},
+    {hp:1400,wood:3000,gold:2500,stone:2000,time:1100,atk:150,magic:true,storage:{}},
+    {hp:2200,wood:6500,gold:5500,stone:4400,time:2200,atk:250,magic:true,storage:{}},
+    {hp:3500,wood:13000,gold:11000,stone:8800,time:4400,atk:400,magic:true,storage:{}},
+  ]},
+  siege_workshop:{name:'Siege Wksp',icon:'🛠️',cat:'military',base:{wood:900,gold:700,stone:600},levels:[
+    {hp:600,wood:900,gold:700,stone:600,time:380,trainSlots:2,storage:{}},
+    {hp:1100,wood:2300,gold:1800,stone:1500,time:850,trainSlots:4,storage:{}},
+    {hp:1700,wood:4800,gold:3800,stone:3200,time:1700,trainSlots:6,storage:{}},
+    {hp:2700,wood:9700,gold:7700,stone:6500,time:3400,trainSlots:8,storage:{}},
+  ]},
+  palace:     {name:'Palace',      icon:'🏰', cat:'core',    base:{wood:2000,gold:1800,stone:2500},levels:[
+    {hp:5000,wood:2000,gold:1800,stone:2500,time:1200,defense:100,storage:{}},
+    {hp:9000,wood:5000,gold:4500,stone:6200,time:2700,defense:180,storage:{}},
+    {hp:16000,wood:11000,gold:9800,stone:13500,time:5400,defense:300,storage:{}},
+    {hp:28000,wood:22000,gold:19600,stone:27000,time:10800,defense:480,storage:{}},
+  ]},
+};
+
+const TH_UNLOCKS = {
+  0:['townhall','lumberjack','goldmine','stonepit','house','warehouse','barracks'],
+  1:['farm','wall','tower','blacksmith'],
+  2:['market','techlab','castle','catapult'],
+  3:['mage_tower','siege_workshop','palace'],
+};
+
+const TROOPS = [
+  {id:'warrior', name:'Warrior',  icon:'🗡️', hp:80,  atk:12, cost:{gold:50,food:2},  trainTime:20, level:1, req:'barracks'},
+  {id:'archer',  name:'Archer',   icon:'🏹', hp:60,  atk:18, cost:{gold:70,food:2},  trainTime:25, level:1, req:'barracks'},
+  {id:'spear',   name:'Spearman', icon:'⚔️', hp:100, atk:10, cost:{gold:60,food:3},  trainTime:22, level:1, req:'barracks'},
+  {id:'cavalry', name:'Cavalry',  icon:'🐎', hp:140, atk:22, cost:{gold:120,food:5}, trainTime:45, level:2, req:'barracks', reqLv:2},
+  {id:'mage',    name:'Mage',     icon:'🧙', hp:70,  atk:35, cost:{gold:200,food:4}, trainTime:60, level:3, req:'techlab'},
+  {id:'giant',   name:'Giant',    icon:'👹', hp:300, atk:30, cost:{gold:300,food:8}, trainTime:80, level:3, req:'barracks', reqLv:3},
+  {id:'dragon',  name:'Dragon',   icon:'🐉', hp:500, atk:80, cost:{gold:600,food:15},trainTime:120,level:4,req:'palace'},
+  {id:'catapult',name:'Catapult', icon:'🏹', hp:200, atk:60, cost:{gold:400,food:10},trainTime:100,level:3,req:'siege_workshop'},
+];
+
+const QUESTS = [
+  {id:'q_build1',    title:'First Steps',     desc:'Build a Lumberjack',       req:{build:'lumberjack',count:1}, reward:{gold:200,wood:100},     xp:50},
+  {id:'q_build2',    title:'Mine the Earth',  desc:'Build a Gold Mine',        req:{build:'goldmine',count:1},   reward:{gold:300,stone:100},    xp:75},
+  {id:'q_troops1',   title:'Train Warriors',  desc:'Train 5 Warriors',         req:{train:'warrior',count:5},    reward:{gold:400,wood:200},     xp:100},
+  {id:'q_attack1',   title:'First Blood',     desc:'Win a raid',               req:{win:1},                      reward:{gold:600,wood:300},     xp:150},
+  {id:'q_build3',    title:'Fortify',         desc:'Build a Guard Tower',      req:{build:'tower',count:1},      reward:{stone:300,gold:200},    xp:120},
+  {id:'q_res1',      title:'Lumberjack',      desc:'Collect 1000 wood',        req:{collect:'wood',count:1000},  reward:{gold:500},              xp:100},
+  {id:'q_res2',      title:'Gold Rush',       desc:'Collect 1000 gold',        req:{collect:'gold',count:1000},  reward:{wood:500},              xp:100},
+  {id:'q_pop1',      title:'Growing Village', desc:'Reach 20 population',      req:{pop:20},                     reward:{gold:800,stone:200},    xp:200},
+  {id:'q_might1',    title:'Might is Right',  desc:'Reach 500 Might',          req:{might:500},                  reward:{gold:1000,wood:500},    xp:250},
+  {id:'q_banyaga1',  title:'Banyaga Slayer',  desc:'Defeat a Banyaga enemy',   req:{banyaga:1},                  reward:{gold:1200,wood:600},    xp:300},
+  {id:'q_th2',       title:'Upgrade HQ',      desc:'Upgrade Town Hall to Lv 2',req:{upgrade:'townhall',level:2}, reward:{gold:1500,stone:500},   xp:400},
+  {id:'q_market1',   title:'Merchant',        desc:'Build a Market',           req:{build:'market',count:1},     reward:{gold:2000,wood:1000},   xp:500, reqTH:2},
+  {id:'q_tech1',     title:'Scholar',         desc:'Build a Tech Lab',         req:{build:'techlab',count:1},    reward:{gold:2500,stone:1500},  xp:600, reqTH:2},
+  {id:'q_alliance1', title:'Allies',          desc:'Join or create an Alliance',req:{alliance:1},                reward:{gold:3000,wood:2000},   xp:800},
+];
+
+const SEASONS = [
+  {name:'Spring',icon:'🌸',sky1:'#b2e0f8',sky2:'#87ceeb',ground:'#3a7020',effect:'rain'},
+  {name:'Summer',icon:'☀️', sky1:'#ffe082',sky2:'#87ceeb',ground:'#2d6010',effect:'wind'},
+  {name:'Autumn',icon:'🍂',sky1:'#e8b48a',sky2:'#c08060',ground:'#5a6010',effect:'fog'},
+  {name:'Winter',icon:'❄️', sky1:'#d0e8f8',sky2:'#7090b0',ground:'#c8d8e8',effect:'snow'},
+];
+
+// ═══════════════════════════════════════
+//  PLAYER STATE
+// ═══════════════════════════════════════
+let player = null;
+let buildings = {};  // {id: {type,x,y,level,hp,timers...}}
+let troops = {};     // {type: count}
+let resources = {wood:200,gold:200,stone:100,food:50};
+let storage = {wood:500,gold:500,stone:300};
+let questProgress = {};
+let battleActive = false;
+let currentBattle = null;
+let chatMessages = {global:[],alliance:[]};
+let currentChatTab = 'global';
+let notifEnabled = true;
+let settings = {sfx:true,music:true,rain:false,fog:false};
+let marketListings = [];
+let friends = [];
+let alliance = null;
+let dayTime = 0; // 0-1 day cycle
+let season = 0;
+let gameDay = 1;
+let playtime = 0;
+let lastTick = 0;
+let population = 0;
+let populationMax = 0;
+let might = 0;
+let bounty = 0;
+let onlinePlayers = [];
+let pendingBuild = null;
+let buildIdCounter = 0;
+let leaderboard = {};
+
+// World map drag
+let mapX = -500, mapY = -300;
+let dragging = false;
+let dragStartX, dragStartY, mapStartX, mapStartY;
+
+// ═══════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════
+window.onload = () => {
+  runLoadScreen1();
+};
+
+function runLoadScreen1() {
+  const msgs = ['Loading terrain...','Initializing kingdoms...','Summoning troops...','Forging weapons...','Building villages...','Ready!'];
+  let i = 0;
+  const bar = document.getElementById('lb1');
+  const txt = document.getElementById('loadText');
+  const iv = setInterval(() => {
+    i++;
+    bar.style.width = (i/msgs.length*100)+'%';
+    txt.textContent = msgs[i-1]||msgs[msgs.length-1];
+    if(i >= msgs.length) {
+      clearInterval(iv);
+      setTimeout(() => {
+        const ls1 = document.getElementById('loadScreen1');
+        ls1.style.animation = 'fadeOut 0.6s ease forwards';
+        setTimeout(() => { ls1.style.display='none'; showAuth(); }, 600);
+      }, 400);
+    }
+  }, 400);
+}
+
+function runLoadScreen2(cb) {
+  const ls2 = document.getElementById('loadScreen2');
+  ls2.style.display = 'flex';
+  ls2.style.opacity = '1';
+  document.getElementById('welcomeUsername').textContent = 'Chief — '+player.name;
+  const bar = document.getElementById('lb2');
+  const msgs = ['Loading your village...','Restoring buildings...','Counting resources...','Summoning allies...','Done!'];
+  let i = 0;
+  const iv = setInterval(() => {
+    i++;
+    bar.style.width = (i/msgs.length*100)+'%';
+    document.getElementById('loadText2').textContent = msgs[i-1];
+    if(i >= msgs.length) {
+      clearInterval(iv);
+      setTimeout(() => {
+        ls2.style.animation = 'fadeOut 0.7s ease forwards';
+        setTimeout(() => { ls2.style.display='none'; if(cb)cb(); }, 700);
+      }, 500);
+    }
+  }, 350);
+}
+
+// ═══════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════
+function showAuth() {
+  document.getElementById('authScreen').style.display='flex';
+  loadSavedAccounts();
+}
+
+function loadSavedAccounts() {
+  const saved = DB.get('saved_accounts') || [];
+  const wrap = document.getElementById('savedAccountsWrap');
+  const list = document.getElementById('savedList');
+  if(saved.length) {
+    wrap.style.display='block';
+    list.innerHTML='';
+    saved.forEach(acc => {
+      const el = document.createElement('div');
+      el.className='saved-item';
+      el.innerHTML=`<div class="saved-avatar">${acc.name[0].toUpperCase()}</div><div style="flex:1"><div style="font-size:0.85rem">${acc.name}</div><div style="font-size:0.72rem;color:var(--textd)">${acc.email}</div></div><span style="font-size:0.75rem;color:var(--textd)">Tap to fill</span>`;
+      el.onclick=()=>{
+        document.getElementById('loginEmail').value=acc.email;
+        document.getElementById('loginPass').value=acc.pass;
+      };
+      list.appendChild(el);
+    });
+  } else wrap.style.display='none';
+}
+
+function showLogin() {
+  document.getElementById('loginForm').style.display='';
+  document.getElementById('signupForm1').style.display='none';
+  document.getElementById('signupForm2').style.display='none';
+}
+function showSignup() {
+  document.getElementById('loginForm').style.display='none';
+  document.getElementById('signupForm1').style.display='';
+  document.getElementById('signupForm2').style.display='none';
+}
+function goSignup2() {
+  const email = document.getElementById('signEmail').value.trim();
+  const pass = document.getElementById('signPass').value;
+  const pass2 = document.getElementById('signPass2').value;
+  const err = document.getElementById('signupError1');
+  if(!email || !email.includes('@')) { showAuthError(err,'Please enter a valid email.'); return; }
+  if(pass.length < 6) { showAuthError(err,'Password must be at least 6 characters.'); return; }
+  if(pass !== pass2) { showAuthError(err,'Passwords do not match.'); return; }
+  const accounts = DB.get('accounts') || {};
+  if(accounts[email]) { showAuthError(err,'Account already exists.'); return; }
+  err.style.display='none';
+  document.getElementById('signupForm1').style.display='none';
+  document.getElementById('signupForm2').style.display='';
+  document.getElementById('genCode').textContent = generateCode();
+}
+function generateCode() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let c = '#';
+  for(let i=0;i<6;i++) c += chars[Math.floor(Math.random()*chars.length)];
+  return c;
+}
+function doSignup() {
+  const email = document.getElementById('signEmail').value.trim();
+  const pass = document.getElementById('signPass').value;
+  const name = document.getElementById('signName').value.trim();
+  const code = document.getElementById('genCode').textContent;
+  const err = document.getElementById('signupError2');
+  if(!name || name.length < 2) { showAuthError(err,'Please enter a name (min 2 chars).'); return; }
+  const accounts = DB.get('accounts') || {};
+  const playerNum = Object.keys(accounts).length + 1;
+  const newPlayer = {
+    email, pass, name, code,
+    playerNum,
+    createdAt: Date.now(),
+    buildings: {},
+    resources: {wood:200,gold:200,stone:100,food:50},
+    troops: {},
+    questProgress: {},
+    might: 0,
+    bounty: 0,
+    playtime: 0,
+    gameDay: 1,
+    season: 0,
+    friends: [],
+    alliance: null,
+    leaderboard: {},
+    chatMessages: {global:[],alliance:[]},
+    marketListings:[],
+    buildIdCounter: 0,
+    storage:{wood:500,gold:500,stone:300},
+  };
+  accounts[email] = newPlayer;
+  DB.set('accounts', accounts);
+  // Save to saved list
+  saveToSavedList(email, pass, name);
+  // Send email (simulated)
+  pushNotif('📧 Email Sent!', `Welcome email sent to ${email}`);
+  // Auto login
+  doLoginWith(email, pass);
+}
+function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  doLoginWith(email, pass);
+}
+function doLoginWith(email, pass) {
+  const err = document.getElementById('loginError');
+  const accounts = DB.get('accounts') || {};
+  if(!accounts[email]) { showAuthError(err,'No account with that email.'); return; }
+  if(accounts[email].pass !== pass) { showAuthError(err,'Wrong password.'); return; }
+  err.style.display='none';
+  saveToSavedList(email, pass, accounts[email].name);
+  // Load player
+  player = accounts[email];
+  loadPlayerState();
+  document.getElementById('authScreen').style.display='none';
+  runLoadScreen2(() => {
+    startGame();
+  });
+}
+function saveToSavedList(email, pass, name) {
+  let saved = DB.get('saved_accounts') || [];
+  saved = saved.filter(a => a.email !== email);
+  saved.unshift({email,pass,name});
+  if(saved.length > 5) saved.length = 5;
+  DB.set('saved_accounts', saved);
+}
+function showAuthError(el, msg) {
+  el.textContent = msg;
+  el.style.display='block';
+  el.parentElement.style.animation='none';
+  el.parentElement.offsetHeight;
+  el.parentElement.style.animation='shake 0.4s ease';
+}
+function togglePw(id, btn) {
+  const inp = document.getElementById(id);
+  if(inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+  else { inp.type = 'password'; btn.textContent = '👁'; }
+}
+function logout() {
+  savePlayerState();
+  player = null;
+  buildings = {};
+  closePanel('settingsPanel');
+  document.getElementById('gameContainer').style.display='none';
+  document.getElementById('authScreen').style.display='flex';
+  showLogin();
+  loadSavedAccounts();
+}
+
+// ═══════════════════════════════════════
+//  PLAYER STATE LOAD/SAVE
+// ═══════════════════════════════════════
+function loadPlayerState() {
+  const accounts = DB.get('accounts') || {};
+  const p = accounts[player.email];
+  buildings = p.buildings || {};
+  resources = p.resources || {wood:200,gold:200,stone:100,food:50};
+  troops = p.troops || {};
+  questProgress = p.questProgress || {};
+  might = p.might || 0;
+  bounty = p.bounty || 0;
+  playtime = p.playtime || 0;
+  gameDay = p.gameDay || 1;
+  season = p.season || 0;
+  friends = p.friends || [];
+  alliance = p.alliance || null;
+  chatMessages = p.chatMessages || {global:[],alliance:[]};
+  marketListings = p.marketListings || [];
+  buildIdCounter = p.buildIdCounter || 0;
+  storage = p.storage || {wood:500,gold:500,stone:300};
+  settings = p.settings || {sfx:true,music:true,rain:false,fog:false};
+  notifEnabled = p.notifEnabled !== false;
+  // If no buildings, place default TH
+  if(Object.keys(buildings).length === 0) {
+    buildings['b0'] = {type:'townhall',x:900,y:900,level:1,hp:1000,buildTimer:0,upgradeTimer:0};
+    buildIdCounter = 1;
+  }
+}
+function savePlayerState() {
+  if(!player) return;
+  const accounts = DB.get('accounts') || {};
+  accounts[player.email] = {
+    ...accounts[player.email],
+    buildings, resources, troops, questProgress,
+    might, bounty, playtime, gameDay, season,
+    friends, alliance, chatMessages, marketListings,
+    buildIdCounter, storage, settings, notifEnabled,
+  };
+  DB.set('accounts', accounts);
+}
+
+// ═══════════════════════════════════════
+//  GAME START
+// ═══════════════════════════════════════
+function startGame() {
+  document.getElementById('gameContainer').style.display='block';
+  document.getElementById('playerTag').textContent = `P#${String(player.playerNum).padStart(4,'0')}`;
+  renderBuildings();
+  updateHUD();
+  setupMapDrag();
+  setupClouds();
+  setupWeather();
+  updateSeasonUI();
+  lastTick = Date.now();
+  setInterval(gameTick, 1000);
+  setInterval(savePlayerState, 10000);
+  setInterval(updateLeaderboard, 15000);
+  setInterval(spawnOnlinePlayers, 5000);
+  // Load global chat
+  const gc = DB.get('global_chat') || [];
+  chatMessages.global = gc.slice(-50);
+  renderChat();
+  spawnOnlinePlayers();
+  updateQuestProgress({type:'login'});
+}
+
+// ═══════════════════════════════════════
+//  GAME TICK
+// ═══════════════════════════════════════
+function gameTick() {
+  const now = Date.now();
+  const dt = (now - lastTick) / 1000;
+  lastTick = now;
+  playtime += dt;
+  
+  // Day/Night cycle (60 second day)
+  dayTime = (Date.now() / 60000) % 1;
+  updateDayNight();
+  
+  // Game day counter
+  const newDay = Math.floor(playtime / 300) + 1;
+  if(newDay !== gameDay) {
+    gameDay = newDay;
+    season = Math.floor((gameDay-1)/7) % 4;
+    updateSeasonUI();
+  }
+  
+  // Resource production
+  let woodProd=0, goldProd=0, stoneProd=0, foodProd=0;
+  let popCount=0, popMaxCount=0;
+  Object.values(buildings).forEach(b => {
+    if(!b || !BUILDINGS[b.type]) return;
+    const def = BUILDINGS[b.type];
+    const lv = b.level-1;
+    if(lv < 0 || lv >= def.levels.length) return;
+    const lvData = def.levels[lv];
+    if(lvData.produces) {
+      if(lvData.produces.wood) woodProd += lvData.produces.wood;
+      if(lvData.produces.gold) goldProd += lvData.produces.gold;
+      if(lvData.produces.stone) stoneProd += lvData.produces.stone;
+      if(lvData.produces.food) foodProd += lvData.produces.food;
+    }
+    if(lvData.pop) popMaxCount += lvData.pop;
+    // Build timers
+    if(b.buildTimer > 0) {
+      b.buildTimer -= dt;
+      if(b.buildTimer <= 0) {
+        b.buildTimer = 0;
+        onBuildComplete(b);
+      }
+    }
+  });
+  
+  // Population growth
+  populationMax = popMaxCount;
+  // Grow pop slowly (day faster, night slightly faster with houses)
+  const hasHouse = Object.values(buildings).some(b=>b&&b.type==='house');
+  let growRate = 0.005 * dt;
+  if(dayTime < 0.5) growRate *= 1; // day
+  else growRate *= (hasHouse ? 1.3 : 0.8); // night
+  if(population < populationMax) {
+    population = Math.min(populationMax, population + growRate);
+  }
+  
+  // Apply production
+  const pr = dt/3; // per 3 seconds
+  const addWood = woodProd * pr;
+  const addGold = goldProd * pr;
+  const addStone = stoneProd * pr;
+  resources.wood = Math.min(storage.wood, resources.wood + addWood);
+  resources.gold = Math.min(storage.gold, resources.gold + addGold);
+  resources.stone = Math.min(storage.stone, resources.stone + addStone);
+  resources.food = Math.min(500, (resources.food||0) + foodProd * pr);
+  
+  // Update storage from warehouses
+  let wWood=500,wGold=500,wStone=300;
+  Object.values(buildings).forEach(b => {
+    if(!b) return;
+    const def = BUILDINGS[b.type];
+    if(!def) return;
+    const lv = b.level-1;
+    if(lv < 0 || lv >= def.levels.length) return;
+    const lvData = def.levels[lv];
+    if(lvData.storage && lvData.storage.wood) wWood += lvData.storage.wood;
+    if(lvData.storage && lvData.storage.gold) wGold += lvData.storage.gold;
+    if(lvData.storage && lvData.storage.stone) wStone += lvData.storage.stone;
+  });
+  storage = {wood:wWood, gold:wGold, stone:wStone};
+  
+  // Might calculation
+  calcMight();
+  
+  // Update quest: collect resources
+  questProgress['wood_collected'] = (questProgress['wood_collected']||0) + addWood;
+  questProgress['gold_collected'] = (questProgress['gold_collected']||0) + addGold;
+  
+  population = Math.max(0, Math.min(populationMax, population + growRate*10));
+  popCount = Math.floor(population);
+  
+  updateHUD();
+  updateBuildTimers();
+}
+
+function calcMight() {
+  let m = 0;
+  Object.values(buildings).forEach(b => {
+    if(!b) return;
+    const def = BUILDINGS[b.type];
+    if(!def) return;
+    m += b.level * 10;
+    const lv = b.level-1;
+    if(lv >= 0 && lv < def.levels.length) {
+      const lvData = def.levels[lv];
+      if(lvData.atk) m += lvData.atk;
+      if(lvData.defense) m += lvData.defense * 0.5;
+    }
+  });
+  Object.entries(troops).forEach(([t,cnt]) => {
+    const tDef = TROOPS.find(x=>x.id===t);
+    if(tDef) m += cnt * (tDef.hp/10 + tDef.atk);
+  });
+  might = Math.floor(m);
+}
+
+function updateHUD() {
+  document.getElementById('woodVal').textContent = fmtNum(Math.floor(resources.wood));
+  document.getElementById('goldVal').textContent = fmtNum(Math.floor(resources.gold));
+  document.getElementById('stoneVal').textContent = fmtNum(Math.floor(resources.stone));
+  document.getElementById('popVal').textContent = Math.floor(population);
+  document.getElementById('popMax').textContent = populationMax;
+  document.getElementById('mightVal').textContent = fmtNum(might);
+  document.getElementById('onlineCount').textContent = onlinePlayers.length+1;
+  document.getElementById('chatOnline').textContent = onlinePlayers.length+1;
+  document.getElementById('seasonBadge').textContent = `${SEASONS[season].icon} ${SEASONS[season].name} · Day ${gameDay}`;
+}
+
+function updateDayNight() {
+  const t = dayTime;
+  let sky;
+  if(t < 0.25) sky=`linear-gradient(to bottom,#ffd080,#87ceeb)`;
+  else if(t < 0.5) sky=`linear-gradient(to bottom,#87ceeb,#c9e8f5)`;
+  else if(t < 0.75) sky=`linear-gradient(to bottom,#ff8040,#4060a0)`;
+  else sky=`linear-gradient(to bottom,#0a1530,#1a2a50)`;
+  document.getElementById('skyLayer').style.background = sky;
+}
+
+function updateSeasonUI() {
+  const s = SEASONS[season];
+  document.getElementById('seasonBadge').textContent = `${s.icon} ${s.name} · Day ${gameDay}`;
+}
+
+function updateBuildTimers() {
+  document.querySelectorAll('.build-timer').forEach(el => {
+    const bid = el.getAttribute('data-bid');
+    if(bid && buildings[bid]) {
+      const t = buildings[bid].buildTimer || 0;
+      if(t > 0) el.textContent = fmtTime(Math.ceil(t));
+      else el.remove();
+    }
+  });
+}
+
+// ═══════════════════════════════════════
+//  BUILDINGS RENDER
+// ═══════════════════════════════════════
+function renderBuildings() {
+  const layer = document.getElementById('buildingsLayer');
+  layer.innerHTML='';
+  Object.entries(buildings).forEach(([bid,b]) => {
+    if(!b || !BUILDINGS[b.type]) return;
+    renderBuilding(bid, b);
+  });
+}
+function renderBuilding(bid, b) {
+  const def = BUILDINGS[b.type];
+  const lv = b.level-1;
+  if(!def) return;
+  const maxLv = def.levels.length;
+  const lvData = def.levels[Math.min(lv,maxLv-1)];
+  const layer = document.getElementById('buildingsLayer');
+  let el = document.getElementById('bldg_'+bid);
+  if(!el) {
+    el = document.createElement('div');
+    el.className='building';
+    el.id='bldg_'+bid;
+    el.onclick = () => showBuildingInfo(bid);
+    layer.appendChild(el);
+  }
+  el.style.left = b.x+'px';
+  el.style.top = b.y+'px';
+  
+  // Size by level
+  const sz = 50 + b.level * 10;
+  // HP bar
+  const maxHp = lvData.hp;
+  const hpPct = Math.min(100, ((b.hp||maxHp)/maxHp)*100);
+  
+  // Visual upgrade based on level
+  let extra = '';
+  if(b.buildTimer > 0) {
+    extra = `<div class="build-timer" data-bid="${bid}">${fmtTime(Math.ceil(b.buildTimer))}</div>`;
+  }
+  
+  el.innerHTML = `
+    ${extra}
+    <div class="bldg-sprite" style="width:${sz}px;height:${sz}px;background:rgba(0,0,0,0.2);border:2px solid rgba(240,165,0,${0.2+b.level*0.1});border-radius:8px;">
+      <span style="font-size:${sz*0.5}px;">${def.icon}</span>
+      ${b.level>1?`<span style="position:absolute;top:2px;right:4px;font-size:10px;color:var(--gold);font-weight:700">Lv${b.level}</span>`:''}
+    </div>
+    <div class="bldg-label">${def.name}</div>
+    <div class="bldg-health"><div class="bldg-health-fill" style="width:${hpPct}%"></div></div>
+  `;
+}
+
+// ═══════════════════════════════════════
+//  BUILD MENU
+// ═══════════════════════════════════════
+function openBuildPanel() {
+  const grid = document.getElementById('buildGrid');
+  grid.innerHTML = '';
+  const thLevel = getTHLevel();
+  
+  Object.entries(BUILDINGS).forEach(([type,def]) => {
+    if(type === 'townhall') return;
+    const unlocked = isBuildingUnlocked(type);
+    const alreadyBuilt = Object.values(buildings).some(b => b && b.type === type);
+    const cost = def.levels[0];
+    
+    const el = document.createElement('div');
+    el.className = 'build-item' + (unlocked?'':' locked');
+    
+    let reqText = '';
+    if(!unlocked) {
+      const reqTH = getUnlockTH(type);
+      reqText = `<div class="bi-req">Needs TH Lv${reqTH}</div>`;
+    }
+    if(alreadyBuilt && !isMultiBuild(type)) {
+      el.style.opacity='0.5';
+      el.title = 'Already built';
+    }
+    
+    el.innerHTML = `
+      <div class="bi-icon">${def.icon}</div>
+      <div class="bi-name">${def.name}</div>
+      <div class="bi-cost">🪵${fmtNum(cost.wood)} 🪙${fmtNum(cost.gold)}</div>
+      ${reqText}
+      ${!unlocked?'<div class="locked-badge">🔒</div>':''}
+    `;
+    if(unlocked && (!alreadyBuilt || isMultiBuild(type))) {
+      el.onclick = () => startPlacing(type);
+    }
+    grid.appendChild(el);
+  });
+  
+  openPanel('buildPanel');
+}
+
+function isMultiBuild(type) {
+  return ['lumberjack','goldmine','stonepit','farm','house','warehouse','barracks','wall','tower'].includes(type);
+}
+
+function isBuildingUnlocked(type) {
+  const thLv = getTHLevel();
+  let unlocked = false;
+  for(let i=0;i<=thLv-1;i++) {
+    if(TH_UNLOCKS[i] && TH_UNLOCKS[i].includes(type)) unlocked=true;
+  }
+  return unlocked;
+}
+
+function getUnlockTH(type) {
+  for(let i=0;i<4;i++) {
+    if(TH_UNLOCKS[i] && TH_UNLOCKS[i].includes(type)) return i+1;
+  }
+  return 99;
+}
+
+function getTHLevel() {
+  const th = Object.values(buildings).find(b => b && b.type==='townhall');
+  return th ? th.level : 1;
+}
+
+function startPlacing(type) {
+  pendingBuild = type;
+  closePanel('buildPanel');
+  pushNotif('🔨 Placing', `Tap on the map to place ${BUILDINGS[type].name}`);
+  // Listen for tap on world map
+  const map = document.getElementById('worldMap');
+  map.style.cursor = 'crosshair';
+  const handler = (e) => {
+    if(!pendingBuild) { map.removeEventListener('click',handler); return; }
+    const rect = map.getBoundingClientRect();
+    const x = (e.clientX - rect.left) - 30;
+    const y = (e.clientY - rect.top) - 40;
+    placeBuilding(pendingBuild, x, y);
+    pendingBuild = null;
+    map.style.cursor = '';
+    map.removeEventListener('click', handler);
+  };
+  map.addEventListener('click', handler);
+}
+
+function placeBuilding(type, x, y) {
+  const def = BUILDINGS[type];
+  const cost = def.levels[0];
+  if(!canAfford(cost)) {
+    pushNotif('❌ Not enough resources', `Need 🪵${cost.wood} 🪙${cost.gold} 🪨${cost.stone}`);
+    return;
+  }
+  // Check population for farm worker
+  if(type==='farm' && Math.floor(population) < 1) {
+    pushNotif('❌ No workers', 'Need at least 1 population to build');
+    return;
+  }
+  spendResources(cost);
+  const bid = 'b'+buildIdCounter++;
+  const buildTime = cost.time || 0;
+  buildings[bid] = {
+    type, x, y,
+    level:1,
+    hp: cost.hp,
+    buildTimer: buildTime,
+    upgradeTimer: 0,
+  };
+  renderBuilding(bid, buildings[bid]);
+  
+  // Effect
+  spawnBuildEffect(x+50, y+30);
+  
+  // Quest
+  updateQuestProgress({type:'build', buildType:type});
+  
+  if(buildTime > 0) pushNotif('🔨 Building', `${def.name} - ${fmtTime(buildTime)}`);
+  else pushNotif('✅ Built!', `${def.name} is ready!`);
+  
+  calcMight();
+  updateHUD();
+  savePlayerState();
+}
+
+function onBuildComplete(b) {
+  renderBuilding(Object.keys(buildings).find(k=>buildings[k]===b), b);
+  const def = BUILDINGS[b.type];
+  pushNotif('✅ Done!', `${def.name} construction complete!`);
+  spawnTextEffect(b.x, b.y, '✅ Complete!', '#5f5');
+}
+
+// ═══════════════════════════════════════
+//  BUILDING INFO
+// ═══════════════════════════════════════
+function showBuildingInfo(bid) {
+  if(pendingBuild) return;
+  const b = buildings[bid];
+  if(!b) return;
+  const def = BUILDINGS[b.type];
+  const lv = b.level-1;
+  const lvData = def.levels[lv];
+  const maxLv = def.levels.length;
+  const nextLv = lv+1;
+  const canUpgrade = nextLv < maxLv;
+  const nextData = canUpgrade ? def.levels[nextLv] : null;
+  
+  document.getElementById('infoPanelTitle').textContent = def.name;
+  
+  let statsHtml = `
+    <div class="info-icon-big">${def.icon}</div>
+    <div class="info-stat"><span class="info-stat-key">Level</span><span class="info-stat-val">${b.level} / ${maxLv}</span></div>
+    <div class="info-stat"><span class="info-stat-key">HP</span><span class="info-stat-val">${Math.floor(b.hp||lvData.hp)} / ${lvData.hp}</span></div>
+  `;
+  if(lvData.produces) {
+    const prod = Object.entries(lvData.produces).map(([k,v])=>`${resIcon(k)}${v}/s`).join(' ');
+    if(prod) statsHtml += `<div class="info-stat"><span class="info-stat-key">Produces</span><span class="info-stat-val">${prod}</span></div>`;
+  }
+  if(lvData.atk) statsHtml += `<div class="info-stat"><span class="info-stat-key">Attack</span><span class="info-stat-val">${lvData.atk}</span></div>`;
+  if(lvData.defense) statsHtml += `<div class="info-stat"><span class="info-stat-key">Defense</span><span class="info-stat-val">${lvData.defense}</span></div>`;
+  if(lvData.pop) statsHtml += `<div class="info-stat"><span class="info-stat-key">Population +</span><span class="info-stat-val">${lvData.pop}</span></div>`;
+  if(lvData.trainSlots) statsHtml += `<div class="info-stat"><span class="info-stat-key">Train Slots</span><span class="info-stat-val">${lvData.trainSlots}</span></div>`;
+  
+  if(b.buildTimer > 0) {
+    statsHtml += `<div style="text-align:center;color:var(--gold);margin:10px 0;">⏱️ Building: ${fmtTime(Math.ceil(b.buildTimer))}</div>`;
+  }
+  
+  if(canUpgrade && nextData) {
+    const thLv = getTHLevel();
+    const reqTH = nextLv; // each upgrade requires TH level
+    const thOk = thLv >= Math.ceil((nextLv+1)/1.5);
+    const canAffUpg = canAfford(nextData);
+    statsHtml += `
+      <div class="upgrade-req">
+        <div class="upgrade-req-title">⬆️ UPGRADE TO LEVEL ${b.level+1}</div>
+        <div class="req-item ${nextData.wood<=resources.wood?'req-ok':'req-bad'}">🪵 Wood: ${fmtNum(nextData.wood)} / ${fmtNum(Math.floor(resources.wood))}</div>
+        <div class="req-item ${nextData.gold<=resources.gold?'req-ok':'req-bad'}">🪙 Gold: ${fmtNum(nextData.gold)} / ${fmtNum(Math.floor(resources.gold))}</div>
+        <div class="req-item ${nextData.stone<=resources.stone?'req-ok':'req-bad'}">🪨 Stone: ${fmtNum(nextData.stone)} / ${fmtNum(Math.floor(resources.stone))}</div>
+        ${nextData.time?`<div class="req-item" style="color:var(--textd)">⏱️ Time: ${fmtTime(nextData.time)}</div>`:''}
+      </div>
+      <button class="action-btn" ${(!canAffUpg||b.buildTimer>0)?'disabled':''} onclick="upgradeBuilding('${bid}');closePanel('infoPanel');">
+        ${b.buildTimer>0?'⏱️ Building...': (!canAffUpg?'❌ Not Enough Resources':'⬆️ UPGRADE')}
+      </button>
+    `;
+  } else if(!canUpgrade) {
+    statsHtml += `<div style="text-align:center;color:var(--gold);margin-top:10px;">MAX LEVEL</div>`;
+  }
+  
+  statsHtml += `<button class="action-btn" style="background:rgba(120,20,20,0.5);color:#f66;margin-top:8px;border:1px solid #5a1a1a;" onclick="demolishBuilding('${bid}');closePanel('infoPanel');">🗑️ Demolish</button>`;
+  
+  document.getElementById('infoPanelBody').innerHTML = statsHtml;
+  openPanel('infoPanel');
+}
+
+function upgradeBuilding(bid) {
+  const b = buildings[bid];
+  const def = BUILDINGS[b.type];
+  const nextLv = b.level;
+  if(nextLv >= def.levels.length) return;
+  const cost = def.levels[nextLv];
+  if(!canAfford(cost)) { pushNotif('❌ Not enough resources',''); return; }
+  if(b.buildTimer > 0) { pushNotif('⏱️ Already building',''); return; }
+  spendResources(cost);
+  b.buildTimer = cost.time || 0;
+  b.level += 1;
+  b.hp = cost.hp;
+  renderBuilding(bid, b);
+  updateQuestProgress({type:'upgrade', buildType:b.type, level:b.level});
+  if(cost.time>0) pushNotif('⬆️ Upgrading', `${def.name} Lv${b.level} - ${fmtTime(cost.time)}`);
+  else { pushNotif('✅ Upgraded!', `${def.name} is now Lv${b.level}`); spawnBuildEffect(b.x+50,b.y+30); }
+  calcMight();
+  updateHUD();
+  savePlayerState();
+}
+
+function demolishBuilding(bid) {
+  const b = buildings[bid];
+  if(!b) return;
+  const def = BUILDINGS[b.type];
+  if(b.type === 'townhall') { pushNotif('❌ Cannot','Cannot demolish Town Hall'); return; }
+  // Refund 50%
+  const lv = b.level-1;
+  const cost = def.levels[0];
+  resources.wood = Math.min(storage.wood, resources.wood + Math.floor(cost.wood*0.5));
+  resources.gold = Math.min(storage.gold, resources.gold + Math.floor(cost.gold*0.5));
+  resources.stone = Math.min(storage.stone, resources.stone + Math.floor(cost.stone*0.5));
+  delete buildings[bid];
+  const el = document.getElementById('bldg_'+bid);
+  if(el) el.remove();
+  pushNotif('🗑️ Demolished', `${def.name} removed. 50% resources refunded.`);
+  calcMight();
+  updateHUD();
+  savePlayerState();
+}
+
+// ═══════════════════════════════════════
+//  TROOPS
+// ═══════════════════════════════════════
+function openTroopPanel() {
+  const list = document.getElementById('troopList');
+  list.innerHTML = '';
+  const thLv = getTHLevel();
+  const hasBarracks = Object.values(buildings).some(b=>b&&b.type==='barracks');
+  const barrLv = Object.values(buildings).filter(b=>b&&b.type==='barracks').reduce((m,b)=>Math.max(m,b.level),0);
+  const hasTechlab = Object.values(buildings).some(b=>b&&b.type==='techlab');
+  const hasPalace = Object.values(buildings).some(b=>b&&b.type==='palace');
+  const hasSiege = Object.values(buildings).some(b=>b&&b.type==='siege_workshop');
+  
+  TROOPS.forEach(t => {
+    let available = false;
+    if(t.req==='barracks' && hasBarracks && (!t.reqLv || barrLv>=t.reqLv)) available=true;
+    if(t.req==='techlab' && hasTechlab) available=true;
+    if(t.req==='palace' && hasPalace) available=true;
+    if(t.req==='siege_workshop' && hasSiege) available=true;
+    
+    const count = troops[t.id] || 0;
+    const popOk = Math.floor(population) >= (t.cost.food||0);
+    const goldOk = resources.gold >= t.cost.gold;
+    const canTrain = available && popOk && goldOk;
+    
+    const el = document.createElement('div');
+    el.className = 'troop-item';
+    el.style.opacity = available?'1':'0.5';
+    el.innerHTML = `
+      <div class="troop-icon">${t.icon}</div>
+      <div class="troop-info">
+        <div class="troop-name">${t.name}</div>
+        <div class="troop-stats">❤️${t.hp} ⚔️${t.atk} | Cost: 🪙${t.cost.gold} 🌾${t.cost.food||0}</div>
+        ${!available?`<div style="color:#ff9966;font-size:0.7rem;">Needs ${t.req}</div>`:''}
+      </div>
+      <div class="troop-count">${count}</div>
+      <button class="troop-train-btn" ${(!canTrain)?'disabled':''} onclick="trainTroop('${t.id}')">+Train</button>
+    `;
+    list.appendChild(el);
+  });
+  openPanel('troopPanel');
+}
+
+function trainTroop(id) {
+  const t = TROOPS.find(x=>x.id===id);
+  if(!t) return;
+  if(resources.gold < t.cost.gold) { pushNotif('❌ Not enough gold',''); return; }
+  if(Math.floor(population) < (t.cost.food||0)) { pushNotif('❌ Not enough population','Need more workers'); return; }
+  resources.gold -= t.cost.gold;
+  if(t.cost.food) resources.food = Math.max(0,(resources.food||0)-t.cost.food);
+  troops[t.id] = (troops[t.id]||0)+1;
+  updateQuestProgress({type:'train', troopType:id});
+  pushNotif('⚔️ Trained!', `${t.name} added to your army!`);
+  calcMight();
+  updateHUD();
+  openTroopPanel(); // refresh
+  savePlayerState();
+}
+
+// ═══════════════════════════════════════
+//  ATTACK / BATTLE
+// ═══════════════════════════════════════
+function openAttack() {
+  const totalTroops = Object.values(troops).reduce((s,c)=>s+c,0);
+  if(totalTroops === 0) { pushNotif('❌ No Troops','Train troops before attacking!'); return; }
+  
+  // Offer attack options
+  const opts = [
+    {name:'Banyaga Raid', desc:'Fight a Banyaga monster. Reward depends on strength.', type:'banyaga'},
+    {name:'Raid Player', desc:'Attack another player\'s village for loot.', type:'player'},
+  ];
+  
+  const body = document.getElementById('infoPanelBody');
+  document.getElementById('infoPanelTitle').textContent = '⚔️ Attack!';
+  body.innerHTML = opts.map(o=>`
+    <div style="background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;cursor:pointer;" onclick="startBattle('${o.type}')">
+      <div style="font-size:1rem;font-weight:700;color:var(--gold);">${o.name}</div>
+      <div style="font-size:0.8rem;color:var(--textd);margin-top:4px;">${o.desc}</div>
+    </div>
+  `).join('');
+  openPanel('infoPanel');
+}
+
+function startBattle(type) {
+  closePanel('infoPanel');
+  let enemy;
+  if(type==='banyaga') {
+    const lvl = Math.max(1, Math.floor(might/100));
+    const banyagaLvl = Math.max(1, lvl + Math.floor(Math.random()*3)-1);
+    enemy = {
+      name: `Banyaga Lv${banyagaLvl}`,
+      might: banyagaLvl * 80 + Math.random()*50,
+      hp: banyagaLvl * 200,
+      maxHp: banyagaLvl * 200,
+      atk: banyagaLvl * 15,
+      icon: ['👹','🐉','🦴','💀','👾','🐺','🐻','🐊'][banyagaLvl%8],
+      loot: {wood: banyagaLvl*100+Math.floor(Math.random()*100), gold: banyagaLvl*80+Math.floor(Math.random()*80), stone: banyagaLvl*60},
+      type:'banyaga',
+    };
+  } else {
+    // Simulate player
+    const accounts = DB.get('accounts') || {};
+    const others = Object.values(accounts).filter(a=>a.email!==player.email && a.might>0);
+    if(others.length === 0) {
+      pushNotif('❌ No Players','No other players to raid right now.'); return;
+    }
+    const target = others[Math.floor(Math.random()*others.length)];
+    enemy = {
+      name: target.name,
+      might: target.might || 100,
+      hp: 500 + (target.might||100)*2,
+      maxHp: 500 + (target.might||100)*2,
+      atk: 10 + (target.might||100)/20,
+      icon: '🏘️',
+      loot: {wood:Math.floor((target.resources?.wood||0)*0.2), gold:Math.floor((target.resources?.gold||0)*0.2), stone:Math.floor((target.resources?.stone||0)*0.2)},
+      type:'player',
+      email: target.email,
+    };
+  }
+  
+  currentBattle = {
+    enemy,
+    playerHP: Math.max(100, might*2),
+    playerMaxHP: Math.max(100, might*2),
+    round: 0,
+    ended: false,
+    won: null,
+  };
+  battleActive = true;
+  document.getElementById('btAttName').textContent = player.name;
+  document.getElementById('btAttMight').textContent = fmtNum(might);
+  document.getElementById('btDefName').textContent = enemy.name;
+  document.getElementById('btDefMight').textContent = fmtNum(Math.floor(enemy.might));
+  document.getElementById('btAttHP').style.width='100%';
+  document.getElementById('btDefHP').style.width='100%';
+  document.getElementById('battleLog').innerHTML='';
+  setupBattleScene();
+  openPanel('battlePanel');
+  runBattle();
+}
+
+function setupBattleScene() {
+  const sc = document.getElementById('battleScene');
+  sc.innerHTML='';
+  // Player troops
+  const myTroops = Object.entries(troops).filter(([k,v])=>v>0);
+  myTroops.forEach(([id,cnt],i) => {
+    const t = TROOPS.find(x=>x.id===id);
+    if(!t) return;
+    for(let j=0;j<Math.min(cnt,3);j++) {
+      const el = document.createElement('div');
+      el.className='troop-sprite';
+      el.style.left = (50+j*40)+'px';
+      el.style.top = (60+i*50)+'px';
+      el.textContent = t.icon;
+      el.id = `bt_troop_${id}_${j}`;
+      sc.appendChild(el);
+    }
+  });
+  // Enemy
+  const en = document.createElement('div');
+  en.className='enemy-sprite';
+  en.id='bt_enemy';
+  en.style.right='60px';
+  en.style.top='50%';
+  en.style.transform='translateY(-50%)';
+  en.textContent = currentBattle.enemy.icon;
+  en.style.fontSize='64px';
+  sc.appendChild(en);
+}
+
+function runBattle() {
+  if(!battleActive || !currentBattle || currentBattle.ended) return;
+  const b = currentBattle;
+  const en = b.enemy;
+  
+  const iv = setInterval(() => {
+    if(!battleActive || !currentBattle || b.ended) { clearInterval(iv); return; }
+    b.round++;
+    
+    // Player attack
+    let playerAtk = 0;
+    Object.entries(troops).forEach(([id,cnt]) => {
+      const t = TROOPS.find(x=>x.id===id);
+      if(t && cnt>0) playerAtk += t.atk * Math.min(cnt, 5);
+    });
+    playerAtk = playerAtk * (0.8 + Math.random()*0.4);
+    en.hp -= playerAtk;
+    
+    // Enemy attack
+    let enAtk = en.atk * (0.8 + Math.random()*0.4);
+    b.playerHP -= enAtk;
+    
+    const pHPPct = Math.max(0, (b.playerHP/b.playerMaxHP)*100);
+    const eHPPct = Math.max(0, (en.hp/en.maxHp)*100);
+    document.getElementById('btAttHP').style.width = pHPPct+'%';
+    document.getElementById('btDefHP').style.width = eHPPct+'%';
+    
+    // Log
+    const logEl = document.getElementById('battleLog');
+    const entry = document.createElement('div');
+    entry.className='battle-log-entry';
+    entry.textContent = `Round ${b.round}: You dealt ${Math.floor(playerAtk)} dmg | Enemy dealt ${Math.floor(enAtk)} dmg`;
+    logEl.appendChild(entry);
+    logEl.scrollTop = logEl.scrollHeight;
+    
+    // Animate troops
+    const troopEls = document.querySelectorAll('.troop-sprite');
+    troopEls.forEach(el => { el.style.transform=`translateX(${Math.random()*20-10}px)`; });
+    
+    if(en.hp <= 0 || b.playerHP <= 0) {
+      clearInterval(iv);
+      b.ended = true;
+      b.won = en.hp <= 0;
+      endBattle();
+    }
+  }, 600);
+}
+
+function endBattle() {
+  const b = currentBattle;
+  const won = b.won;
+  const en = b.enemy;
+  
+  document.getElementById('btLeaveBtn').textContent = won ? '🏆 Collect Loot' : '💀 Return';
+  document.getElementById('btSurrBtn').style.display='none';
+  
+  const logEl = document.getElementById('battleLog');
+  const result = document.createElement('div');
+  result.style.cssText = 'color:'+(won?'#5f5':'#f66')+';font-weight:700;font-size:0.9rem;margin-top:6px;';
+  result.textContent = won ? `🏆 VICTORY! You defeated ${en.name}!` : `💀 DEFEATED by ${en.name}!`;
+  logEl.appendChild(result);
+  
+  if(won) {
+    const loot = en.loot;
+    resources.wood = Math.min(storage.wood, resources.wood + loot.wood);
+    resources.gold = Math.min(storage.gold, resources.gold + loot.gold);
+    resources.stone = Math.min(storage.stone, resources.stone + loot.stone);
+    bounty += Math.floor(en.might / 10);
+    if(en.type==='banyaga') updateQuestProgress({type:'banyaga'});
+    else updateQuestProgress({type:'win'});
+    
+    const lootEntry = document.createElement('div');
+    lootEntry.style.color='var(--gold)';
+    lootEntry.textContent = `Loot: 🪵${loot.wood} 🪙${loot.gold} 🪨${loot.stone} 💰+${Math.floor(en.might/10)} Bounty`;
+    logEl.appendChild(lootEntry);
+    pushNotif('🏆 Victory!', `You won! Loot: 🪵${loot.wood} 🪙${loot.gold}`);
+  } else {
+    // Lose some troops
+    Object.keys(troops).forEach(k => {
+      if(troops[k]>0) troops[k] = Math.max(0, troops[k]-Math.ceil(troops[k]*0.3));
+    });
+    pushNotif('💀 Defeated', 'You lost the battle. Troops reduced by 30%.');
+  }
+  
+  calcMight();
+  updateHUD();
+  savePlayerState();
+  battleActive = false;
+}
+
+function leaveBattle() {
+  if(!currentBattle?.ended) {
+    // Can leave mid-battle (view only)
+    closePanel('battlePanel');
+    battleActive = false;
+    return;
+  }
+  closePanel('battlePanel');
+  battleActive = false;
+  currentBattle = null;
+}
+
+function surrenderBattle() {
+  if(!battleActive || !currentBattle || currentBattle.ended) return;
+  currentBattle.ended = true;
+  currentBattle.won = false;
+  endBattle();
+}
+
+// ═══════════════════════════════════════
+//  QUESTS
+// ═══════════════════════════════════════
+function openQuestPanel() {
+  const list = document.getElementById('questList');
+  list.innerHTML='';
+  const thLv = getTHLevel();
+  
+  QUESTS.forEach(q => {
+    if(q.reqTH && thLv < q.reqTH) return;
+    const done = questProgress[q.id+'_done'];
+    const prog = getQuestProg(q);
+    const pct = Math.min(100, (prog/getQuestTarget(q))*100);
+    
+    let reqBuildText = '';
+    if(q.req.build) {
+      const built = Object.values(buildings).filter(b=>b&&b.type===q.req.build).length;
+      if(built < q.req.count) {
+        reqBuildText = `<div class="quest-req-build">🔨 Build a ${BUILDINGS[q.req.build]?.name}</div>`;
+      }
+    }
+    if(q.req.upgrade) {
+      const b = Object.values(buildings).find(b=>b&&b.type===q.req.upgrade);
+      if(!b || b.level < q.req.level) {
+        reqBuildText = `<div class="quest-req-build">⬆️ Upgrade ${BUILDINGS[q.req.upgrade]?.name} to Lv${q.req.level}</div>`;
+      }
+    }
+    
+    const el = document.createElement('div');
+    el.className='quest-item';
+    el.style.opacity = done?'0.5':'1';
+    el.style.border = done?'1px solid #2a5a2a':'1px solid var(--border)';
+    el.innerHTML = `
+      <div class="quest-title">${done?'✅ ':''}${q.title}</div>
+      <div class="quest-desc">${q.desc}</div>
+      <div class="quest-progress"><div class="quest-prog-fill" style="width:${pct}%"></div></div>
+      <div style="font-size:0.72rem;color:var(--textd);">${Math.floor(prog)} / ${getQuestTarget(q)}</div>
+      ${reqBuildText}
+      <div class="quest-reward">Reward: ${Object.entries(q.reward).map(([k,v])=>resIcon(k)+v).join(' ')} | +${q.xp} XP</div>
+      ${!done && pct>=100 ? `<button class="quest-btn" onclick="claimQuest('${q.id}')">CLAIM</button>` : ''}
+    `;
+    list.appendChild(el);
+  });
+  openPanel('questPanel');
+}
+
+function getQuestProg(q) {
+  if(q.req.build) return Object.values(buildings).filter(b=>b&&b.type===q.req.build).length;
+  if(q.req.train) return questProgress['train_'+q.req.train]||0;
+  if(q.req.win) return questProgress['wins']||0;
+  if(q.req.banyaga) return questProgress['banyaga_kills']||0;
+  if(q.req.collect) return questProgress[q.req.collect+'_collected']||0;
+  if(q.req.pop) return Math.floor(population);
+  if(q.req.might) return might;
+  if(q.req.upgrade) { const b=Object.values(buildings).find(b=>b&&b.type===q.req.upgrade); return b?b.level:0; }
+  if(q.req.alliance) return alliance?1:0;
+  return 0;
+}
+function getQuestTarget(q) {
+  if(q.req.build) return q.req.count;
+  if(q.req.train) return q.req.count;
+  if(q.req.win) return q.req.win;
+  if(q.req.banyaga) return q.req.banyaga;
+  if(q.req.collect) return q.req.count;
+  if(q.req.pop) return q.req.pop;
+  if(q.req.might) return q.req.might;
+  if(q.req.upgrade) return q.req.level;
+  if(q.req.alliance) return q.req.alliance;
+  return 1;
+}
+
+function updateQuestProgress(ev) {
+  if(ev.type==='train') questProgress['train_'+ev.troopType]=(questProgress['train_'+ev.troopType]||0)+1;
+  if(ev.type==='win') questProgress['wins']=(questProgress['wins']||0)+1;
+  if(ev.type==='banyaga') { questProgress['banyaga_kills']=(questProgress['banyaga_kills']||0)+1; questProgress['wins']=(questProgress['wins']||0)+1; }
+}
+
+function claimQuest(qid) {
+  if(questProgress[qid+'_done']) return;
+  const q = QUESTS.find(x=>x.id===qid);
+  if(!q) return;
+  questProgress[qid+'_done'] = true;
+  Object.entries(q.reward).forEach(([k,v]) => {
+    if(k==='wood') resources.wood=Math.min(storage.wood,resources.wood+v);
+    if(k==='gold') resources.gold=Math.min(storage.gold,resources.gold+v);
+    if(k==='stone') resources.stone=Math.min(storage.stone,resources.stone+v);
+  });
+  pushNotif('🎉 Quest Done!', `${q.title} — Reward claimed!`);
+  spawnTextEffect(500,300,'+'+Object.entries(q.reward).map(([k,v])=>resIcon(k)+v).join(' '),'#f0a500');
+  updateHUD();
+  savePlayerState();
+  openQuestPanel();
+}
+
+// ═══════════════════════════════════════
+//  CHAT
+// ═══════════════════════════════════════
+function openChat() {
+  renderChat();
+  openPanel('chatPanel');
+}
+function switchChatTab(tab, el) {
+  currentChatTab = tab;
+  document.querySelectorAll('.chat-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderChat();
+}
+function renderChat() {
+  const msgs = chatMessages[currentChatTab] || [];
+  const el = document.getElementById('chatMessages');
+  el.innerHTML = msgs.map(m=>`
+    <div class="chat-msg${m.system?' system':''}">
+      <div class="msg-user">${m.user}${m.badge?` ${m.badge}`:''}</div>
+      <div class="msg-text">${sanitize(m.text)}</div>
+    </div>
+  `).join('');
+  el.scrollTop = el.scrollHeight;
+}
+function sendChat() {
+  const inp = document.getElementById('chatInput');
+  const txt = inp.value.trim();
+  if(!txt) return;
+  inp.value='';
+  const msg = {user:player.name, text:txt, time:Date.now(), tab:currentChatTab};
+  chatMessages[currentChatTab].push(msg);
+  if(chatMessages[currentChatTab].length>100) chatMessages[currentChatTab].shift();
+  
+  if(currentChatTab==='global') {
+    const gc = DB.get('global_chat') || [];
+    gc.push({...msg, playerNum:player.playerNum});
+    if(gc.length>200) gc.shift();
+    DB.set('global_chat', gc);
+  }
+  
+  renderChat();
+  savePlayerState();
+}
+function uploadChatImage() { pushNotif('🖼️','Image upload simulated. Feature requires server backend.'); }
+function uploadChatVideo() { pushNotif('🎬','Video upload simulated. Feature requires server backend.'); }
+function toggleNotif() {
+  notifEnabled = !notifEnabled;
+  const el = document.getElementById('notifToggle');
+  el.classList.toggle('on', notifEnabled);
+  savePlayerState();
+}
+
+// ═══════════════════════════════════════
+//  LEADERBOARD
+// ═══════════════════════════════════════
+let currentLbType = 'might';
+function openLeader() {
+  renderLeaderboard(currentLbType);
+  openPanel('leaderPanel');
+}
+function switchLb(type, el) {
+  currentLbType = type;
+  document.querySelectorAll('.lb-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderLeaderboard(type);
+}
+function renderLeaderboard(type) {
+  const accounts = DB.get('accounts') || {};
+  let list = Object.values(accounts).map(a=>({
+    name:a.name, code:a.code, playerNum:a.playerNum,
+    might:a.might||0, gold:Math.floor(a.resources?.gold||0),
+    wood:Math.floor(a.resources?.wood||0),
+    troops:Object.values(a.troops||{}).reduce((s,v)=>s+v,0),
+    bounty:a.bounty||0,
+    pop:a.population||0,
+    playtime:a.playtime||0,
+  }));
+  // Add current player
+  const meIdx = list.findIndex(a=>a.name===player.name);
+  const meData = {name:player.name,code:player.code,playerNum:player.playerNum,
+    might,gold:Math.floor(resources.gold),wood:Math.floor(resources.wood),
+    troops:Object.values(troops).reduce((s,v)=>s+v,0),bounty,
+    pop:Math.floor(population),playtime};
+  if(meIdx>=0) list[meIdx]=meData; else list.push(meData);
+  
+  list.sort((a,b)=>b[type]-a[type]);
+  
+  const el = document.getElementById('lbList');
+  el.innerHTML = list.slice(0,20).map((a,i)=>{
+    const rankCls = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+    const isMe = a.name===player.name;
+    return `<div class="lb-row" style="${isMe?'border-color:var(--gold);background:rgba(240,165,0,0.05);':''}">
+      <div class="lb-rank ${rankCls}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div>
+      <div class="lb-info">
+        <div class="lb-name">${a.name}${isMe?' (You)':''}</div>
+        <div class="lb-sub">P#${String(a.playerNum||0).padStart(4,'0')} · ${a.code||''}</div>
+      </div>
+      <div class="lb-val">${fmtNum(a[type]||0)}</div>
+    </div>`;
+  }).join('');
+}
+function updateLeaderboard() {
+  if(document.getElementById('leaderPanel').classList.contains('active')) renderLeaderboard(currentLbType);
+}
+
+// ═══════════════════════════════════════
+//  MARKET
+// ═══════════════════════════════════════
+function openMarket() {
+  const hasMarket = Object.values(buildings).some(b=>b&&b.type==='market');
+  if(!hasMarket) { pushNotif('❌ Market Required', 'Build a Market first!'); return; }
+  renderMarket();
+  openPanel('marketPanel');
+}
+function renderMarket() {
+  const accounts = DB.get('accounts') || {};
+  const allListings = [];
+  Object.values(accounts).forEach(a => {
+    if(a.marketListings) allListings.push(...a.marketListings.map(l=>({...l,seller:a.name})));
+  });
+  allListings.push(...marketListings.map(l=>({...l,seller:player.name})));
+  
+  const el = document.getElementById('marketList');
+  if(!allListings.length) { el.innerHTML='<div style="color:var(--textd);text-align:center;padding:20px;">No listings yet. Post an offer!</div>'; return; }
+  el.innerHTML = allListings.map((l,i)=>`
+    <div class="market-item">
+      <div class="market-icon">${resIcon(l.offer)}</div>
+      <div class="market-info">
+        <div class="market-name">Selling: ${l.offerAmt} ${l.offer} → Want: ${l.wantAmt} ${l.want}</div>
+        <div class="market-seller">by ${l.seller}</div>
+      </div>
+      <button class="market-btn" onclick="buyMarket(${i})">Trade</button>
+    </div>
+  `).join('');
+}
+function openPostOffer() {
+  const body = document.getElementById('infoPanelBody');
+  document.getElementById('infoPanelTitle').textContent = '📦 Post Trade Offer';
+  body.innerHTML = `
+    <div class="input-wrap"><label>OFFER RESOURCE</label>
+      <select id="offerRes" style="width:100%;background:rgba(0,0,0,0.4);border:1.5px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:Cinzel;outline:none;">
+        <option value="wood">🪵 Wood</option><option value="gold">🪙 Gold</option><option value="stone">🪨 Stone</option>
+      </select></div>
+    <div class="input-wrap"><label>OFFER AMOUNT</label><input type="number" id="offerAmt" min="1" placeholder="100" style="width:100%;background:rgba(0,0,0,0.4);border:1.5px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:Cinzel;outline:none;"></div>
+    <div class="input-wrap"><label>WANT RESOURCE</label>
+      <select id="wantRes" style="width:100%;background:rgba(0,0,0,0.4);border:1.5px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:Cinzel;outline:none;">
+        <option value="gold">🪙 Gold</option><option value="wood">🪵 Wood</option><option value="stone">🪨 Stone</option>
+      </select></div>
+    <div class="input-wrap"><label>WANT AMOUNT</label><input type="number" id="wantAmt" min="1" placeholder="80" style="width:100%;background:rgba(0,0,0,0.4);border:1.5px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:Cinzel;outline:none;"></div>
+    <button class="action-btn" onclick="postOffer()">POST OFFER</button>
+  `;
+  openPanel('infoPanel');
+}
+function postOffer() {
+  const offer = document.getElementById('offerRes').value;
+  const offerAmt = parseInt(document.getElementById('offerAmt').value)||0;
+  const want = document.getElementById('wantRes').value;
+  const wantAmt = parseInt(document.getElementById('wantAmt').value)||0;
+  if(!offerAmt||!wantAmt||offer===want) { pushNotif('❌ Invalid','Check your offer values.'); return; }
+  if(resources[offer] < offerAmt) { pushNotif('❌ Not enough','You don\'t have enough to offer.'); return; }
+  resources[offer] -= offerAmt;
+  marketListings.push({offer,offerAmt,want,wantAmt,id:Date.now()});
+  pushNotif('✅ Listed!','Your trade offer is now live.');
+  closePanel('infoPanel');
+  savePlayerState();
+}
+function buyMarket(idx) {
+  const accounts = DB.get('accounts') || {};
+  const allListings = [];
+  Object.values(accounts).forEach(a => {
+    if(a.marketListings) allListings.push(...a.marketListings.map(l=>({...l,seller:a.name})));
+  });
+  allListings.push(...marketListings.map(l=>({...l,seller:player.name})));
+  const l = allListings[idx];
+  if(!l) return;
+  if(resources[l.want] < l.wantAmt) { pushNotif('❌ Not enough',`Need ${l.wantAmt} ${l.want}`); return; }
+  resources[l.want] -= l.wantAmt;
+  resources[l.offer] = Math.min(storage[l.offer], resources[l.offer]+l.offerAmt);
+  pushNotif('🤝 Trade!',`Got ${l.offerAmt} ${l.offer}!`);
+  // Remove listing from seller
+  const sellerAcc = Object.values(accounts).find(a=>a.name===l.seller);
+  if(sellerAcc) {
+    sellerAcc.marketListings = (sellerAcc.marketListings||[]).filter(x=>x.id!==l.id);
+    DB.set('accounts',accounts);
+  }
+  marketListings = marketListings.filter(x=>x.id!==l.id);
+  savePlayerState();
+  renderMarket();
+}
+
+// ═══════════════════════════════════════
+//  SOCIAL (Friends & Alliance)
+// ═══════════════════════════════════════
+function openSocial() {
+  renderSocial('friends');
+  openPanel('socialPanel');
+}
+function switchSocial(tab, el) {
+  document.querySelectorAll('.social-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderSocial(tab);
+}
+function renderSocial(tab) {
+  const el = document.getElementById('socialContent');
+  const accounts = DB.get('accounts') || {};
+  
+  if(tab==='friends') {
+    if(!friends.length) { el.innerHTML='<div style="color:var(--textd);text-align:center;padding:20px;">No friends yet. Add some!</div>'; return; }
+    el.innerHTML = friends.map(f=>`
+      <div class="friend-item">
+        <div class="friend-avatar">${f[0]?.toUpperCase()}</div>
+        <div class="friend-info">
+          <div class="friend-name">${f}</div>
+          <div class="friend-status">Player</div>
+        </div>
+        <div class="friend-actions">
+          <button class="friend-btn" onclick="attackFriend('${f}')">⚔️ Raid</button>
+          <button class="friend-btn red" onclick="removeFriend('${f}')">Remove</button>
+        </div>
+      </div>
+    `).join('');
+  } else if(tab==='alliance') {
+    if(!alliance) {
+      el.innerHTML = `
+        <div style="text-align:center;padding:20px;">
+          <div style="font-size:2rem;margin-bottom:10px;">🛡️</div>
+          <div style="color:var(--textd);margin-bottom:16px;">You're not in an alliance</div>
+          <input id="allianceName" placeholder="Alliance name..." style="width:100%;background:rgba(0,0,0,0.4);border:1.5px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:Cinzel;outline:none;margin-bottom:10px;">
+          <button class="action-btn" onclick="createAlliance()">Create Alliance</button>
+        </div>
+      `;
+    } else {
+      el.innerHTML = `
+        <div style="background:rgba(240,165,0,0.08);border:1px solid rgba(240,165,0,0.2);border-radius:10px;padding:14px;margin-bottom:14px;">
+          <div style="font-size:1.1rem;font-weight:700;color:var(--gold);">🛡️ ${alliance}</div>
+          <div style="font-size:0.8rem;color:var(--textd);margin-top:4px;">You are a member</div>
+        </div>
+        <button class="action-btn" style="background:rgba(120,20,20,0.5);color:#f66;border:1px solid #5a1a1a;" onclick="leaveAlliance()">Leave Alliance</button>
+      `;
+    }
+  } else {
+    el.innerHTML = `
+      <div style="color:var(--textd);font-size:0.82rem;margin-bottom:12px;">Enter player code to add friend:</div>
+      <div class="input-wrap"><input id="addFriendCode" placeholder="Player code e.g. #ABC123" style="width:100%;background:rgba(0,0,0,0.4);border:1.5px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:Cinzel;outline:none;"></div>
+      <button class="action-btn" onclick="addFriend()">➕ ADD FRIEND</button>
+    `;
+  }
+}
+function addFriend() {
+  const code = document.getElementById('addFriendCode').value.trim();
+  if(!code) return;
+  const accounts = DB.get('accounts') || {};
+  const found = Object.values(accounts).find(a=>a.code===code && a.email!==player.email);
+  if(!found) { pushNotif('❌ Not Found','No player with that code.'); return; }
+  if(friends.includes(found.name)) { pushNotif('Already friends!',''); return; }
+  friends.push(found.name);
+  pushNotif('✅ Friend Added!', `${found.name} is now your friend!`);
+  savePlayerState();
+  renderSocial('friends');
+}
+function removeFriend(name) {
+  friends = friends.filter(f=>f!==name);
+  savePlayerState();
+  renderSocial('friends');
+}
+function attackFriend(name) {
+  closePanel('socialPanel');
+  // Use raid logic
+  const accounts = DB.get('accounts') || {};
+  const target = Object.values(accounts).find(a=>a.name===name);
+  if(!target) { pushNotif('❌','Player not found.'); return; }
+  const enemy = {
+    name,
+    might:target.might||100,
+    hp:500+(target.might||100)*2,
+    maxHp:500+(target.might||100)*2,
+    atk:10+(target.might||100)/20,
+    icon:'🏘️',
+    loot:{wood:Math.floor((target.resources?.wood||0)*0.15),gold:Math.floor((target.resources?.gold||0)*0.15),stone:Math.floor((target.resources?.stone||0)*0.15)},
+    type:'player',email:target.email
+  };
+  currentBattle={enemy,playerHP:Math.max(100,might*2),playerMaxHP:Math.max(100,might*2),round:0,ended:false,won:null};
+  battleActive=true;
+  document.getElementById('btAttName').textContent=player.name;
+  document.getElementById('btAttMight').textContent=fmtNum(might);
+  document.getElementById('btDefName').textContent=name;
+  document.getElementById('btDefMight').textContent=fmtNum(Math.floor(enemy.might));
+  document.getElementById('btAttHP').style.width='100%';
+  document.getElementById('btDefHP').style.width='100%';
+  document.getElementById('battleLog').innerHTML='';
+  document.getElementById('btSurrBtn').style.display='';
+  setupBattleScene();
+  openPanel('battlePanel');
+  runBattle();
+}
+function createAlliance() {
+  const name = document.getElementById('allianceName').value.trim();
+  if(!name) { pushNotif('❌','Enter alliance name.'); return; }
+  alliance = name;
+  pushNotif('🛡️ Alliance Created!', `You founded "${name}"!`);
+  updateQuestProgress({type:'alliance'});
+  savePlayerState();
+  renderSocial('alliance');
+}
+function leaveAlliance() {
+  alliance = null;
+  savePlayerState();
+  renderSocial('alliance');
+  pushNotif('Left alliance','');
+}
+
+// ═══════════════════════════════════════
+//  SETTINGS
+// ═══════════════════════════════════════
+function openSettings() {
+  document.getElementById('settingEmail').textContent = player.email;
+  document.getElementById('settingNum').textContent = `P#${String(player.playerNum).padStart(4,'0')} · ${player.code}`;
+  document.getElementById('settingSeason').textContent = SEASONS[season].name;
+  document.getElementById('settingPlaytime').textContent = fmtTime(Math.floor(playtime));
+  ['sfx','music','rain','fog'].forEach(k=>{
+    document.getElementById(k+'Toggle').classList.toggle('on',settings[k]!==false);
+  });
+  openPanel('settingsPanel');
+}
+function toggleSetting(key, el) {
+  settings[key] = !settings[key];
+  el.classList.toggle('on', settings[key]);
+  if(key==='rain') toggleRain(settings.rain);
+  if(key==='fog') toggleFog(settings.fog);
+  savePlayerState();
+}
+function openProfile() { openSettings(); }
+
+// ═══════════════════════════════════════
+//  WEATHER / ENVIRONMENT
+// ═══════════════════════════════════════
+function setupClouds() {
+  const layer = document.getElementById('cloudLayer');
+  for(let i=0;i<6;i++) {
+    const c = document.createElement('div');
+    c.className='cloud';
+    const w=100+Math.random()*200, h=30+Math.random()*40;
+    c.style.cssText=`width:${w}px;height:${h}px;top:${5+Math.random()*30}%;animation-duration:${60+Math.random()*80}s;animation-delay:-${Math.random()*80}s;`;
+    layer.appendChild(c);
+  }
+}
+function setupWeather() {
+  toggleRain(settings.rain||false);
+  toggleFog(settings.fog||false);
+}
+function toggleRain(on) {
+  const layer = document.getElementById('rainLayer');
+  layer.innerHTML='';
+  if(on) {
+    for(let i=0;i<40;i++) {
+      const r = document.createElement('div');
+      r.className='rain-drop';
+      r.style.cssText=`left:${Math.random()*100}%;animation-duration:${0.6+Math.random()*0.4}s;animation-delay:-${Math.random()*1}s;`;
+      layer.appendChild(r);
+    }
+  }
+}
+function toggleFog(on) {
+  const layer = document.getElementById('fogLayer');
+  layer.innerHTML='';
+  if(on) {
+    for(let i=0;i<5;i++) {
+      const f = document.createElement('div');
+      f.className='fog-patch';
+      f.style.cssText=`width:${300+Math.random()*400}px;height:${100+Math.random()*200}px;left:${Math.random()*100}%;top:${20+Math.random()*60}%;animation-delay:${-Math.random()*6}s;`;
+      layer.appendChild(f);
+    }
+  }
+}
+
+// ═══════════════════════════════════════
+//  MAP DRAG
+// ═══════════════════════════════════════
+function setupMapDrag() {
+  const map = document.getElementById('worldMap');
+  const container = document.getElementById('gameContainer');
+  
+  map.style.transform = `translate(${mapX}px,${mapY}px)`;
+  
+  const startDrag = (cx,cy) => {
+    dragging = true;
+    dragStartX = cx; dragStartY = cy;
+    mapStartX = mapX; mapStartY = mapY;
+    map.classList.add('dragging');
+  };
+  const moveDrag = (cx,cy) => {
+    if(!dragging) return;
+    mapX = mapStartX + (cx-dragStartX);
+    mapY = mapStartY + (cy-dragStartY);
+    mapX = Math.min(100, Math.max(-1600, mapX));
+    mapY = Math.min(100, Math.max(-1600, mapY));
+    map.style.transform = `translate(${mapX}px,${mapY}px)`;
+  };
+  const endDrag = () => { dragging=false; map.classList.remove('dragging'); };
+  
+  container.addEventListener('mousedown', e=>{ if(e.target.classList.contains('building')||e.target.closest('.building')) return; startDrag(e.clientX,e.clientY); });
+  container.addEventListener('mousemove', e=>moveDrag(e.clientX,e.clientY));
+  container.addEventListener('mouseup', endDrag);
+  container.addEventListener('mouseleave', endDrag);
+  
+  container.addEventListener('touchstart', e=>{ if(e.touches.length===1 && !e.target.closest('.building')){ const t=e.touches[0]; startDrag(t.clientX,t.clientY); } }, {passive:true});
+  container.addEventListener('touchmove', e=>{ if(e.touches.length===1){ const t=e.touches[0]; moveDrag(t.clientX,t.clientY); } }, {passive:true});
+  container.addEventListener('touchend', endDrag);
+}
+
+// ═══════════════════════════════════════
+//  EFFECTS
+// ═══════════════════════════════════════
+function spawnBuildEffect(x, y) {
+  const ef = document.getElementById('effectLayer');
+  const el = document.createElement('div');
+  el.className='effect-build';
+  el.textContent='✨';
+  ef.appendChild(el);
+  setTimeout(()=>el.remove(), 1000);
+  // Coins
+  for(let i=0;i<4;i++) {
+    setTimeout(()=>{
+      const coin = document.createElement('div');
+      coin.className='effect-coin';
+      coin.style.left=(30+Math.random()*40)+'%';
+      coin.style.top='40%';
+      coin.textContent='🪙';
+      ef.appendChild(coin);
+      setTimeout(()=>coin.remove(), 1000);
+    }, i*100);
+  }
+}
+function spawnTextEffect(x, y, text, color) {
+  const ef = document.getElementById('effectLayer');
+  const el = document.createElement('div');
+  el.className='effect-text';
+  el.style.left=(20+Math.random()*60)+'%';
+  el.style.top='30%';
+  el.style.color=color||'var(--gold)';
+  el.textContent=text;
+  ef.appendChild(el);
+  setTimeout(()=>el.remove(), 1200);
+}
+
+// ═══════════════════════════════════════
+//  NOTIFICATIONS
+// ═══════════════════════════════════════
+function pushNotif(title, msg) {
+  if(!notifEnabled && !title.includes('❌')) return;
+  const stack = document.getElementById('notifStack');
+  const el = document.createElement('div');
+  el.className='notif';
+  el.innerHTML=`<div class="notif-title">${title}</div>${msg?`<div style="font-size:0.78rem;color:var(--textd);margin-top:2px;">${msg}</div>`:''}`;
+  stack.appendChild(el);
+  setTimeout(()=>{ el.style.animation='fadeOut 0.4s ease forwards'; setTimeout(()=>el.remove(),400); }, 3000);
+}
+
+// ═══════════════════════════════════════
+//  ONLINE PLAYERS (simulate)
+// ═══════════════════════════════════════
+function spawnOnlinePlayers() {
+  const accounts = DB.get('accounts') || {};
+  const others = Object.values(accounts).filter(a=>a.email!==player.email);
+  onlinePlayers = others.slice(0,Math.floor(Math.random()*Math.min(others.length+5,20)));
+  // Also pull from global chat recent users
+  const gc = DB.get('global_chat') || [];
+  const recent = [...new Set(gc.slice(-30).map(m=>m.user))].filter(n=>n!==player.name);
+  recent.slice(0,5).forEach(n=>{if(!onlinePlayers.find(p=>p.name===n))onlinePlayers.push({name:n});});
+  updateHUD();
+}
+
+// ═══════════════════════════════════════
+//  PANEL SYSTEM
+// ═══════════════════════════════════════
+function openPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => { if(p.id!==id) p.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+}
+function closePanel(id) { document.getElementById(id).classList.remove('active'); }
+
+function setNav(tab) {
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('nav'+tab.charAt(0).toUpperCase()+tab.slice(1))?.classList.add('active');
+}
+
+// ═══════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════
+function canAfford(cost) {
+  return (resources.wood >= (cost.wood||0)) && (resources.gold >= (cost.gold||0)) && (resources.stone >= (cost.stone||0));
+}
+function spendResources(cost) {
+  resources.wood -= (cost.wood||0);
+  resources.gold -= (cost.gold||0);
+  resources.stone -= (cost.stone||0);
+}
+function fmtNum(n) {
+  if(n>=1000000) return (n/1000000).toFixed(1)+'M';
+  if(n>=1000) return (n/1000).toFixed(1)+'K';
+  return String(Math.floor(n));
+}
+function fmtTime(s) {
+  if(s<60) return s+'s';
+  if(s<3600) return Math.floor(s/60)+'m '+(s%60)+'s';
+  return Math.floor(s/3600)+'h '+Math.floor((s%3600)/60)+'m';
+}
+function resIcon(r) { return{wood:'🪵',gold:'🪙',stone:'🪨',food:'🌾',xp:'⭐'}[r]||''; }
+function sanitize(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ═══════════════════════════════════════
+//  ANTI-CHEAT
+// ═══════════════════════════════════════
+// Basic anti-exploit: validate resources on save
+setInterval(()=>{
+  if(!player) return;
+  ['wood','gold','stone'].forEach(r=>{
+    if(resources[r]>storage[r]) resources[r]=storage[r];
+    if(resources[r]<0) resources[r]=0;
+  });
+  if(might<0) might=0;
+  if(bounty<0) bounty=0;
+  if(population<0) population=0;
+  if(population>populationMax+5) population=populationMax;
+},5000);
+
+// Load global chat on tab focus
+document.addEventListener('visibilitychange', ()=>{
+  if(!document.hidden && player) {
+    const gc = DB.get('global_chat') || [];
+    chatMessages.global = gc.slice(-50);
+    if(document.getElementById('chatPanel').classList.contains('active')) renderChat();
+  }
+});
+
+console.log('%cTribeWar — Anti-tamper active. Console exploitation disabled.','color:#f0a500;font-weight:bold;font-size:14px;');
+// Freeze eval in context as warning
+const _origEval = window.eval;
+window.eval = function(code){
+  if(code.includes('resources') || code.includes('buildings') || code.includes('troops')) {
+    pushNotif && pushNotif('🚫 Anti-Cheat','Detected exploit attempt. Account flagged.');
+    return;
+  }
+  return _origEval.call(window, code);
+};
+</script>
+</body>
+</html>
